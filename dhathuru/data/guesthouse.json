@@ -1,0 +1,61 @@
+{
+    "hotels": [
+      {
+        "id": "paradise-retreat",
+        "name": "Paradise Retreat",
+        "island": "Maafushi",
+        "description": "Add your description here.",
+        "contact": {
+          "phone": "",
+          "email": ""
+        },
+        "rooms": [
+          {
+            "type": "Deluxe",
+            "pricePerNight": 500,
+            "capacity": 2,
+            "image": "https://encrypted-tbn3.gstatic.com/licensed-image?q=tbn:ANd9GcRvHASOPdS88sqdheA8gdJmpKoQ1TPDqzowIyBTHS0S0k3qddE-bdnHIgkRonudcbB_6JKTgRO88dWzXAgcq97JSx9hqm9FJ2U0GY0zJA"
+          },
+          {
+            "type": "Superior",
+            "pricePerNight": 600,
+            "capacity": 2,
+            "image": "https://encrypted-tbn0.gstatic.com/licensed-image?q=tbn:ANd9GcQf5iMZJPPdcRONre7Ghk229-XaTZ9qU20ZBhiNPsLDkoEPlmfk9MZR_GJRiaStA8HX-Rt9J3E_z9Qf-UjlLGODzbiUHVtOiOnZaLN2AA"
+          }
+        ],
+        "images": [
+          "https://encrypted-tbn3.gstatic.com/licensed-image?q=tbn:ANd9GcRvHASOPdS88sqdheA8gdJmpKoQ1TPDqzowIyBTHS0S0k3qddE-bdnHIgkRonudcbB_6JKTgRO88dWzXAgcq97JSx9hqm9FJ2U0GY0zJA",
+          "https://encrypted-tbn0.gstatic.com/licensed-image?q=tbn:ANd9GcQf5iMZJPPdcRONre7Ghk229-XaTZ9qU20ZBhiNPsLDkoEPlmfk9MZR_GJRiaStA8HX-Rt9J3E_z9Qf-UjlLGODzbiUHVtOiOnZaLN2AA"
+        ]
+      },
+      {
+        "id": "raaidh-house",
+        "name": "Raaidh House",
+        "island": "Maafushi",
+        "description": "Add your description here.",
+        "contact": {
+          "phone": "",
+          "email": ""
+        },
+        "rooms": [
+          {
+            "type": "Indigo",
+            "pricePerNight": 200,
+            "capacity": 3,
+            "image": "../images/2D48lcbvKw8M6GrmGPkYgqQRH.png"
+          },
+          {
+            "type": "African",
+            "pricePerNight": 5000,
+            "capacity": 2,
+            "image": "../images/2D48lcbvKw8M6GrmGPkYgqQRH.png"
+          }
+        ],
+        "images": [
+          "../images/2D48lcbvKw8M6GrmGPkYgqQRH.png",
+          "../images/2D48lcbvKw8M6GrmGPkYgqQRH.png"
+        ]
+      }
+    ]
+  }
+  

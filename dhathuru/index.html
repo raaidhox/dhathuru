@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Guesthouse Search</title>
+  <style>
+    body { font-family: sans-serif; max-width: 600px; margin: 2rem auto; }
+    label { display: block; margin-top: 1rem; }
+    select, input { width: 100%; padding: .5rem; margin-top: .5rem; }
+    button { margin-top: 1.5rem; padding: .75rem 1.5rem; }
+  </style>
+</head>
+<body>
+  <h1>Find Your Guesthouse</h1>
+
+  <form id="searchForm">
+    <label>
+      Island
+      <select name="island" id="islandSelect" required>
+        <option value="">Loading…</option>
+      </select>
+    </label>
+
+    <label>
+      Adults
+      <select name="adults">
+        <option value="1">1</option>
+        <option value="2">2</option>
+        <option value="3">3</option>
+        <option value="4">4</option>
+      </select>
+    </label>
+
+    <label>
+      Kids
+      <select name="kids">
+        <option value="0" selected>0</option>
+        <option value="1">1</option>
+        <option value="2">2</option>
+      </select>
+    </label>
+
+    <label>
+      Check-in
+      <input type="date" name="checkin" required>
+    </label>
+
+    <label>
+      Check-out
+      <input type="date" name="checkout" required>
+    </label>
+
+    <button type="submit">Search</button>
+  </form>
+
+  <script>
+    // 1) load guesthouse.json, extract unique islands
+    fetch('../data/guesthouse.json')
+      .then(r => r.json())
+      .then(obj => {
+
+        const hotels = obj.hotels || [];
+        const islands = [...new Set(hotels.map(h => h.island))].sort();
+        const sel = document.getElementById('islandSelect');
+        sel.innerHTML = '<option value="">Select an island…</option>';
+        islands.forEach(i => {
+          const opt = document.createElement('option');
+          opt.value = i;
+          opt.textContent = i;
+          sel.append(opt);
+        });
+      })
+      .catch(err => {
+        console.error(err);
+        document.getElementById('islandSelect')
+          .innerHTML = '<option value="">Error loading islands</option>';
+      });
+
+    // 2) on submit → serialize and redirect
+    document.getElementById('searchForm')
+      .addEventListener('submit', e => {
+        e.preventDefault();
+        const params = new URLSearchParams(new FormData(e.target));
+        window.location.href = `results.html?${params.toString()}`;
+      });
+  </script>
+</body>
+</html>
