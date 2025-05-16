@@ -4,81 +4,84 @@
   <meta charset="UTF-8">
   <title>Guesthouse Search</title>
   <style>
-    /* Import a modern font */
-    @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600&display=swap');
-  
-    :root {
-      --primary: #6C63FF;
-      --primary-light: #8A85FF;
-      --bg: #F5F7FA;
-      --text: #333;
-      --input-bg: #fff;
-      --input-border: #DDD;
-    }
-  
-    /* Global reset */
-    *, *::before, *::after {
-      box-sizing: border-box;
-    }
-  
-    body {
-      font-family: 'Poppins', sans-serif;
-      background-color: var(--bg);
-      color: var(--text);
-      max-width: 600px;
-      margin: 2rem auto;
-      padding: 0 1rem;
-      line-height: 1.6;
-    }
-  
-    label {
-      display: block;
-      margin-top: 1.5rem;
-      font-weight: 500;
-      color: var(--primary);
-    }
-  
-    select,
-    input {
-      width: 100%;
-      padding: 0.75rem 1rem;
-      margin-top: 0.5rem;
-      border: 1px solid var(--input-border);
-      border-radius: 0.5rem;
-      background-color: var(--input-bg);
-      font-size: 1rem;
-      transition: border-color 0.2s ease, box-shadow 0.2s ease;
-    }
-  
-    select:focus,
-    input:focus {
-      border-color: var(--primary);
-      box-shadow: 0 0 0 3px rgba(108, 99, 255, 0.2);
-      outline: none;
-    }
-  
-    button {
-      display: inline-block;
-      margin-top: 2rem;
-      padding: 0.75rem 1.5rem;
-      background-color: var(--primary);
-      color: #fff;
-      border: none;
-      border-radius: 0.75rem;
-      font-size: 1rem;
-      font-weight: 600;
-      cursor: pointer;
-      box-shadow: 0 4px 8px rgba(0,0,0,0.1);
-      transition: background-color 0.2s ease, transform 0.1s ease;
-    }
-  
-    button:hover {
-      background-color: var(--primary-light);
-    }
-  
-    button:active {
-      transform: translateY(2px);
-    }
+/* style.css */
+
+/* 1) Load the Poppins font */
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600&display=swap');
+
+:root {
+  --primary: #6C63FF;
+  --primary-light: #8A85FF;
+  --bg: #F5F7FA;
+  --text: #333;
+  --input-bg: #fff;
+  --input-border: #DDD;
+}
+
+/* Global reset */
+*, *::before, *::after {
+  box-sizing: border-box;
+}
+
+body {
+  font-family: 'Poppins', sans-serif;
+  background-color: var(--bg);
+  color: var(--text);
+  max-width: 600px;
+  margin: 2rem auto;
+  padding: 0 1rem;
+  line-height: 1.6;
+}
+
+label {
+  display: block;
+  margin-top: 1.5rem;
+  font-weight: 500;
+  color: var(--primary);
+}
+
+select,
+input {
+  width: 100%;
+  padding: 0.75rem 1rem;
+  margin-top: 0.5rem;
+  border: 1px solid var(--input-border);
+  border-radius: 0.5rem;
+  background-color: var(--input-bg);
+  font-size: 1rem;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+select:focus,
+input:focus {
+  border-color: var(--primary);
+  box-shadow: 0 0 0 3px rgba(108, 99, 255, 0.2);
+  outline: none;
+}
+
+button {
+  display: inline-block;
+  margin-top: 2rem;
+  padding: 0.75rem 1.5rem;
+  background-color: var(--primary);
+  color: #fff;
+  border: none;
+  border-radius: 0.75rem;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+  transition: background-color 0.2s ease, transform 0.1s ease;
+}
+
+button:hover {
+  background-color: var(--primary-light);
+}
+
+button:active {
+  transform: translateY(2px);
+}
+
   </style>
   
 </head>
