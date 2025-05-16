@@ -53,7 +53,7 @@
     document.getElementById('guests').textContent = `${adults} adult(s), ${kids} kid(s)`;
 
     // load JSON & find that hotel
-    fetch('../data/guesthouse.json')
+    fetch('../dhathuru/data/guesthouse.json')
       .then(r => r.json())
       .then(data => {
         const hotel = data.hotels.find(h => h.id === hotelId);
