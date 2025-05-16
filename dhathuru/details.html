@@ -4,13 +4,104 @@
   <meta charset="UTF-8">
   <title>Book Guesthouse</title>
   <style>
-    body { font-family: sans-serif; max-width: 600px; margin: 2rem auto; }
-    img { max-width: 100%; border-radius: 4px; }
-    .room-select { margin-top: 1rem; }
-    label { display: block; margin-top: 1rem; }
-    button { margin-top: 1.5rem; padding: .75rem 1.5rem; }
-    #total { font-weight: bold; margin-top: 1em; }
+    /* Google Font Import */
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap');
+  
+    :root {
+      --clr-bg: #f9fafb;
+      --clr-accent: #4f46e5;
+      --clr-accent-light: #6366f1;
+      --clr-border: #e5e7eb;
+      --clr-text: #1f2937;
+      --clr-input-bg: #ffffff;
+      --clr-input-border: #d1d5db;
+    }
+  
+    *, *::before, *::after {
+      box-sizing: border-box;
+    }
+  
+    body {
+      font-family: 'Inter', sans-serif;
+      background-color: var(--clr-bg);
+      color: var(--clr-text);
+      max-width: 600px;
+      margin: 2rem auto;
+      padding: 0 1rem;
+      line-height: 1.6;
+    }
+  
+    img {
+      width: 100%;
+      border-radius: 0.5rem;
+      box-shadow: 0 4px 8px rgba(0,0,0,0.05);
+    }
+  
+    .room-select {
+      margin-top: 1.5rem;
+      background: var(--clr-input-bg);
+      border: 1px solid var(--clr-border);
+      border-radius: 0.5rem;
+      padding: 1rem;
+    }
+  
+    label {
+      font-weight: 500;
+      color: var(--clr-text);
+      margin-top: 1rem;
+      display: block;
+    }
+  
+    select,
+    input {
+      width: 100%;
+      padding: 0.75rem 1rem;
+      margin-top: 0.5rem;
+      border: 1px solid var(--clr-input-border);
+      border-radius: 0.5rem;
+      background: var(--clr-input-bg);
+      font-size: 1rem;
+      transition: border-color 0.2s ease, box-shadow 0.2s ease;
+    }
+  
+    select:focus,
+    input:focus {
+      border-color: var(--clr-accent);
+      box-shadow: 0 0 0 3px rgba(79,70,229,0.2);
+      outline: none;
+    }
+  
+    button {
+      display: inline-block;
+      margin-top: 1.5rem;
+      padding: 0.75rem 1.5rem;
+      background-color: var(--clr-accent);
+      color: #fff;
+      font-weight: 600;
+      border: none;
+      border-radius: 0.5rem;
+      cursor: pointer;
+      transition: background-color 0.2s ease, transform 0.1s ease;
+    }
+  
+    button:hover {
+      background-color: var(--clr-accent-light);
+    }
+  
+    button:active {
+      transform: translateY(1px);
+    }
+  
+    #total {
+      display: block;
+      margin-top: 1.5rem;
+      font-size: 1.25rem;
+      font-weight: 600;
+      color: var(--clr-accent);
+      text-align: right;
+    }
   </style>
+  
 </head>
 <body>
   <h1 id="hotelName">Loading…</h1>
