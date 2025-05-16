@@ -3,10 +3,13 @@
 <head>
   <meta charset="UTF-8">
   <title>Book Guesthouse</title>
+
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+
   <style>
-    /* Google Font Import */
-    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap');
-  
     :root {
       --clr-bg: #f9fafb;
       --clr-accent: #4f46e5;
@@ -15,12 +18,11 @@
       --clr-text: #1f2937;
       --clr-input-bg: #ffffff;
       --clr-input-border: #d1d5db;
+      --clr-shadow: rgba(0, 0, 0, 0.05);
     }
-  
-    *, *::before, *::after {
-      box-sizing: border-box;
-    }
-  
+
+    *, *::before, *::after { box-sizing: border-box; }
+
     body {
       font-family: 'Inter', sans-serif;
       background-color: var(--clr-bg);
@@ -30,70 +32,37 @@
       padding: 0 1rem;
       line-height: 1.6;
     }
-  
+
     img {
       width: 100%;
       border-radius: 0.5rem;
-      box-shadow: 0 4px 8px rgba(0,0,0,0.05);
+      box-shadow: 0 4px 8px var(--clr-shadow);
+      margin-bottom: 1rem;
     }
-  
-    .room-select {
-      margin-top: 1.5rem;
-      background: var(--clr-input-bg);
-      border: 1px solid var(--clr-border);
-      border-radius: 0.5rem;
-      padding: 1rem;
-    }
-  
-    label {
-      font-weight: 500;
-      color: var(--clr-text);
-      margin-top: 1rem;
-      display: block;
-    }
-  
-    select,
-    input {
+
+    form > div { margin: 0.5rem 0; }
+
+    label { display: block; margin: 1rem 0 0.5rem; font-weight: 500; }
+
+    select, input[type="checkbox"] {
       width: 100%;
       padding: 0.75rem 1rem;
-      margin-top: 0.5rem;
       border: 1px solid var(--clr-input-border);
       border-radius: 0.5rem;
       background: var(--clr-input-bg);
-      font-size: 1rem;
       transition: border-color 0.2s ease, box-shadow 0.2s ease;
+      font-size: 1rem;
     }
-  
-    select:focus,
-    input:focus {
+
+    select:focus, input[type="checkbox"]:focus {
       border-color: var(--clr-accent);
       box-shadow: 0 0 0 3px rgba(79,70,229,0.2);
       outline: none;
     }
-  
-    button {
-      display: inline-block;
-      margin-top: 1.5rem;
-      padding: 0.75rem 1.5rem;
-      background-color: var(--clr-accent);
-      color: #fff;
-      font-weight: 600;
-      border: none;
-      border-radius: 0.5rem;
-      cursor: pointer;
-      transition: background-color 0.2s ease, transform 0.1s ease;
-    }
-  
-    button:hover {
-      background-color: var(--clr-accent-light);
-    }
-  
-    button:active {
-      transform: translateY(1px);
-    }
-  
+
+    input[type="checkbox"] { width: auto; margin-right: 0.5rem; }
+
     #total {
-      display: block;
       margin-top: 1.5rem;
       font-size: 1.25rem;
       font-weight: 600;
@@ -101,7 +70,6 @@
       text-align: right;
     }
   </style>
-  
 </head>
 <body>
   <h1 id="hotelName">Loading…</h1>
@@ -112,38 +80,38 @@
     <div><strong>Dates:</strong> <span id="dates"></span></div>
     <div><strong>Guests:</strong> <span id="guests"></span></div>
 
-    <label class="room-select">
-      Rooms
-      <select id="roomCount">
-        <option value="1">1</option>
-        <option value="2">2</option>
-        <option value="3">3</option>
-      </select>
-    </label>
+    <label for="roomType">Room Type</label>
+    <select id="roomType"></select>
+
+    <label for="roomCount">Rooms</label>
+    <select id="roomCount">
+      <option value="1">1</option>
+      <option value="2">2</option>
+      <option value="3">3</option>
+    </select>
 
     <label>
-      <input type="checkbox" id="transfer"> Include transfer (+ $50 total)
+      <input type="checkbox" id="transfer">
+      Include transfer (+ $50 total)
     </label>
-
-    <button type="button" id="calcBtn">Calculate Total</button>
-    <div id="total"></div>
   </form>
 
-  <script>
-    // pull everything from the URL
-    const params  = new URLSearchParams(window.location.search);
-    const hotelId = params.get('hotelId');
-    const island  = params.get('island');
-    const checkIn = params.get('checkin');
-    const checkOut = params.get('checkout');
-    const adults  = params.get('adults');
-    const kids    = params.get('kids');
+  <div id="total">Total: $0.00</div>
 
-    // display dates and guests
-    document.getElementById('dates').textContent = `${checkIn} → ${checkOut}`;
+  <script>
+    // Parse URL params
+    const params   = new URLSearchParams(window.location.search);
+    const hotelId  = params.get('hotelId');
+    const checkIn  = params.get('checkin');
+    const checkOut = params.get('checkout');
+    const adults   = params.get('adults');
+    const kids     = params.get('kids');
+
+    // Display dates and guests
+    document.getElementById('dates').textContent  = `${checkIn} → ${checkOut}`;
     document.getElementById('guests').textContent = `${adults} adult(s), ${kids} kid(s)`;
 
-    // load JSON & find that hotel
+    // Fetch JSON and render hotel info + room types
     fetch('../dhathuru/data/guesthouse.json')
       .then(r => r.json())
       .then(data => {
@@ -152,48 +120,48 @@
 
         document.getElementById('hotelName').textContent = hotel.name;
         document.getElementById('hotelDesc').textContent = hotel.description;
-        document.getElementById('hotelImg').src = hotel.images[0];
-        document.getElementById('hotelImg').alt = hotel.name;
+        document.getElementById('hotelImg').src         = hotel.images[0];
+        document.getElementById('hotelImg').alt         = hotel.name;
 
-        // room options: show each room type + price
-        const select = document.createElement('select');
-        select.id = 'roomType';
+        // Populate roomType select
+        const roomTypeSel = document.getElementById('roomType');
         hotel.rooms.forEach(rm => {
           const opt = document.createElement('option');
-          opt.value = rm.type;
-          opt.textContent = `${rm.type} – $${rm.pricePerNight}/night`;
+          opt.value         = rm.type;
+          opt.textContent   = `${rm.type} – $${rm.pricePerNight}/night`;
           opt.dataset.price = rm.pricePerNight;
-          select.appendChild(opt);
+          roomTypeSel.appendChild(opt);
         });
-        const lbl = document.createElement('label');
-        lbl.textContent = 'Room Type';
-        lbl.appendChild(select);
-        document.getElementById('bookForm').insertBefore(lbl, document.getElementById('calcBtn'));
 
+        // Attach change listeners & initial update
+        ['roomType','roomCount','transfer']
+          .forEach(id => document.getElementById(id)
+            .addEventListener('change', updateTotal)
+          );
+        updateTotal();
       })
       .catch(err => {
-        document.body.innerHTML = `<p style="color:red">Error loading data: ${err.message}</p>`;
         console.error(err);
+        document.body.innerHTML = `<p style="color:red">Error loading data: ${err.message}</p>`;
       });
 
-    // helper: nights between two dates
+    // Helper: calculate nights between two dates
     function nights(a, b) {
-      const d1 = new Date(a), d2 = new Date(b);
-      return Math.round((d2 - d1) / (1000*60*60*24));
+      return Math.round((new Date(b) - new Date(a)) / (1000 * 60 * 60 * 24));
     }
 
-    // on “Calculate Total” click
-    document.getElementById('calcBtn').addEventListener('click', () => {
-      const roomType = document.getElementById('roomType');
-      const pricePerNight = +roomType.selectedOptions[0].dataset.price;
-      const numRooms = +document.getElementById('roomCount').value;
-      const withTransfer = document.getElementById('transfer').checked;
-      const nightsStay = nights(checkIn, checkOut);
+    // Calculate and display total automatically
+    function updateTotal() {
+      const pricePerNight = +document.getElementById('roomType')
+        .selectedOptions[0].dataset.price;
+      const numRooms      = +document.getElementById('roomCount').value;
+      const withTransfer  = document.getElementById('transfer').checked;
+      const nightsStay    = nights(checkIn, checkOut);
       let total = pricePerNight * numRooms * nightsStay;
       if (withTransfer) total += 50;
       document.getElementById('total').textContent =
         `Total for ${nightsStay} night(s): $${total.toFixed(2)}`;
-    });
+    }
   </script>
 </body>
 </html>
