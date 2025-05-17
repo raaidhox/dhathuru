@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -121,16 +122,16 @@
         // read initial URL params
         const params = new URLSearchParams(window.location.search);
         const init = {
-          island:     params.get('island')      || '',
-          nationality: params.get('nationality')|| 'Maldivian',
-          adults:     params.get('adults')      || '1',
-          kids:       params.get('kids')        || '0',
-          checkin:    params.get('checkin')     || '',
-          checkout:   params.get('checkout')    || ''
+          island:      params.get('island')      || '',
+          nationality: params.get('nationality') || 'Maldivian',
+          adults:      params.get('adults')      || '1',
+          kids:        params.get('kids')        || '0',
+          checkin:     params.get('checkin')     || '',
+          checkout:    params.get('checkout')    || ''
         };
 
         // set filter inputs to match init
-        mini.island.value = init.island;
+        mini.island.value   = init.island;
         for (const r of mini.natRadios) if (r.value === init.nationality) r.checked = true;
         mini.adults.value   = init.adults;
         mini.kids.value     = init.kids;
@@ -138,7 +139,12 @@
         mini.checkout.value = init.checkout;
 
         updateSummary(init);
-        renderResults(allHotels, init);
+
+        // **prefilter by island on initial load**
+        const firstBatch = init.island
+          ? allHotels.filter(h => h.island.toLowerCase() === init.island.toLowerCase())
+          : allHotels;
+        renderResults(firstBatch, init);
       });
 
     editBtn.addEventListener('click', () => {
@@ -174,12 +180,12 @@
 
     document.getElementById('applyFilter').addEventListener('click', () => {
       const sel = {
-        island:     mini.island.value,
+        island:      mini.island.value,
         nationality: [...mini.natRadios].find(r => r.checked)?.value || 'Maldivian',
-        adults:     mini.adults.value,
-        kids:       mini.kids.value,
-        checkin:    mini.checkin.value,
-        checkout:   mini.checkout.value
+        adults:      mini.adults.value,
+        kids:        mini.kids.value,
+        checkin:     mini.checkin.value,
+        checkout:    mini.checkout.value
       };
       updateSummary(sel);
       renderResults(
@@ -201,7 +207,6 @@
       hotels.forEach(h => {
         const a = document.createElement('a');
         a.className = 'hotel-card';
-        // build URL with all filter params
         const url = new URL('details.html', window.location.origin);
         url.searchParams.set('hotelId',     h.id);
         url.searchParams.set('island',      filters.island);
@@ -230,4 +235,6 @@
   </script>
 </body>
 </html>
+
+
 
