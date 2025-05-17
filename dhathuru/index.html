@@ -2,147 +2,146 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>Available Guesthouses</title>
+  <title>Guesthouse Search</title>
   <style>
-    /* … your existing CSS … */
+    @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600&display=swap');
+    :root {
+      --primary: #6C63FF;
+      --primary-light: #8A85FF;
+      --bg: #F5F7FA;
+      --text: #333;
+      --input-bg: #fff;
+      --input-border: #DDD;
+      --suggest-bg: #fff;
+      --suggest-border: #CCC;
+      --suggest-hover: #EFEFEF;
+      --btn-bg: #e0e0e0;
+      --btn-active: #6C63FF;
+      --btn-text-active: #fff;
+    }
+    *, *::before, *::after { box-sizing: border-box; }
+    body {
+      font-family: 'Poppins', sans-serif;
+      background-color: var(--bg);
+      color: var(--text);
+      max-width: 600px;
+      margin: 2rem auto;
+      padding: 0 1rem;
+      line-height: 1.6;
+    }
+    label { display: block; margin-top: 1.5rem; font-weight: 500; color: var(--primary); }
+    input[type="text"], select, input[type="date"] {
+      width: 100%; padding: .75rem 1rem; margin-top: .5rem;
+      border: 1px solid var(--input-border); border-radius: .5rem;
+      background: var(--input-bg); font-size: 1rem;
+    }
+    #suggestions {
+      position: absolute;
+      width: calc(100% - 2rem);
+      background: var(--suggest-bg);
+      border: 1px solid var(--suggest-border);
+      border-radius: .5rem;
+      margin-top: -0.5rem;
+      max-height: 8rem;
+      overflow-y: auto;
+      z-index: 10;
+    }
+    #suggestions div { padding: .5rem 1rem; cursor: pointer; }
+    #suggestions div:hover { background: var(--suggest-hover); }
+    .radio-group { display: flex; gap: 1rem; margin-top: .5rem; }
+    .radio-group input[type="radio"] { display: none; }
+    .radio-group label {
+      flex: 1; text-align: center; padding: .75rem 1rem;
+      background: var(--btn-bg); border-radius: .5rem;
+      cursor: pointer; user-select: none;
+      transition: background 0.2s ease, color 0.2s ease;
+    }
+    .radio-group input[type="radio"]:checked + label {
+      background: var(--btn-active); color: var(--btn-text-active);
+    }
+    button[type="submit"] {
+      margin-top:1.5rem; background:var(--primary); color:#fff;
+      padding:.75rem 1.5rem; border:none; border-radius:.5rem;
+      font-weight:600; cursor:pointer;
+    }
+    form { position: relative; }
   </style>
 </head>
 <body>
-  <h1>Available Guesthouses</h1>
-  <div id="summaryBar">
-    <div id="summaryText"></div>
-    <button id="editBtn">Edit search</button>
-  </div>
-  <div id="filterPanel">
-    <!-- … your filter controls … -->
-    <button id="applyFilter">Apply</button>
-  </div>
-  <div id="results"></div>
+  <h1>Find Your Guesthouse</h1>
+  <form id="searchForm">
+    <label for="islandInput">Island</label>
+    <input type="text" id="islandInput" name="island" placeholder="All islands…" autocomplete="off">
+    <div id="suggestions"></div>
+
+    <label>Nationality (required)</label>
+    <div class="radio-group">
+      <input type="radio" id="natMaldivian" name="nationality" value="Maldivian" required>
+      <label for="natMaldivian">Maldivian</label>
+      <input type="radio" id="natForeigner" name="nationality" value="Foreigner">
+      <label for="natForeigner">Foreigner</label>
+    </div>
+
+    <label for="adultsSelect">Adults</label>
+    <select id="adultsSelect" name="adults">
+      <option>1</option><option>2</option><option>3</option><option>4</option>
+    </select>
+    <label for="kidsSelect">Kids</label>
+    <select id="kidsSelect" name="kids">
+      <option>0</option><option>1</option><option>2</option>
+    </select>
+    <label for="checkin">Check-in</label>
+    <input type="date" id="checkin" name="checkin" required>
+    <label for="checkout">Check-out</label>
+    <input type="date" id="checkout" name="checkout" required>
+    <button type="submit">Search</button>
+  </form>
 
   <script>
-    let allHotels = [], islandsList = [];
-
-    const summaryText = document.getElementById('summaryText');
-    const filterPanel = document.getElementById('filterPanel');
-    const editBtn     = document.getElementById('editBtn');
-    const mini        = {
-      island:    document.getElementById('islandFilter'),
-      natRadios: document.getElementsByName('natFilter'),
-      adults:    document.getElementById('adultsFilter'),
-      kids:      document.getElementById('kidsFilter'),
-      checkin:   document.getElementById('checkinFilter'),
-      checkout:  document.getElementById('checkoutFilter'),
-      suggestions: document.getElementById('suggestions-filter')
-    };
-
-    function updateSummary({island, nationality, adults, kids, checkin, checkout}) {
-      summaryText.textContent =
-        (island || 'All islands') + ' — ' +
-        adults + ' adult(s), ' + kids + ' child(ren)' +
-        (checkin ? ' — ' + checkin + ' → ' + checkout : '');
-    }
+    let islands = [];
+    const form = document.getElementById('searchForm');
+    const input = document.getElementById('islandInput');
+    const suggestions = document.getElementById('suggestions');
 
     fetch('../dhathuru/data/guesthouse.json')
       .then(r => r.json())
-      .then(data => {
-        allHotels   = data.hotels;
-        islandsList = [...new Set(allHotels.map(h => h.island))].sort();
-
-        // read initial URL params
-        const params = new URLSearchParams(window.location.search);
-        const init = {
-          island:      params.get('island')      || '',
-          nationality: params.get('nationality') || 'Maldivian',
-          adults:      params.get('adults')      || '1',
-          kids:        params.get('kids')        || '0',
-          checkin:     params.get('checkin')     || '',
-          checkout:    params.get('checkout')    || ''
-        };
-
-        // set your filter UI to match init
-        mini.island.value  = init.island;
-        mini.adults.value  = init.adults;
-        mini.kids.value    = init.kids;
-        mini.checkin.value = init.checkin;
-        mini.checkout.value= init.checkout;
-        for (const r of mini.natRadios) {
-          if (r.value === init.nationality) r.checked = true;
-        }
-
-        updateSummary(init);
-
-        // ←—— HERE'S THE FIX: prefilter by island before rendering
-        const initialHotels = init.island
-          ? allHotels.filter(h =>
-              h.island.toLowerCase() === init.island.toLowerCase()
-            )
-          : allHotels;
-
-        renderResults(initialHotels, init);
+      .then(obj => {
+        islands = [...new Set(obj.hotels.map(h => h.island))].sort();
       });
 
-    editBtn.addEventListener('click', () => {
-      filterPanel.style.display =
-        filterPanel.style.display === 'block' ? 'none' : 'block';
-    });
+    // Show suggestions on focus and input
+    input.addEventListener('focus', () => showSuggestions(''));
+    input.addEventListener('input', () => showSuggestions(input.value.trim()));
 
-    // … your showSuggestions, applyFilter, etc. stay the same …
-
-    document.getElementById('applyFilter').addEventListener('click', () => {
-      const sel = {
-        island:      mini.island.value,
-        nationality: [...mini.natRadios].find(r => r.checked)?.value || 'Maldivian',
-        adults:      mini.adults.value,
-        kids:        mini.kids.value,
-        checkin:     mini.checkin.value,
-        checkout:    mini.checkout.value
-      };
-      updateSummary(sel);
-      const filtered = allHotels.filter(h =>
-        !sel.island ||
-        h.island.toLowerCase() === sel.island.toLowerCase()
-      );
-      renderResults(filtered, sel);
-      filterPanel.style.display = 'none';
-    });
-
-    function renderResults(hotels, filters) {
-      const c = document.getElementById('results');
-      c.innerHTML = '';
-      if (!hotels.length) {
-        c.innerHTML = '<p>No guesthouses found.</p>';
-        return;
+    // Only clear when clicking outside form
+    document.addEventListener('click', e => {
+      if (!form.contains(e.target)) {
+        suggestions.innerHTML = '';
       }
-      hotels.forEach(h => {
-        const a = document.createElement('a');
-        a.className = 'hotel-card';
+    });
 
-        // build URL with all filter params
-        const url = new URL('details.html', window.location.origin);
-        url.searchParams.set('hotelId',     h.id);
-        url.searchParams.set('island',      filters.island);
-        url.searchParams.set('nationality', filters.nationality);
-        url.searchParams.set('adults',      filters.adults);
-        url.searchParams.set('kids',        filters.kids);
-        url.searchParams.set('checkin',     filters.checkin);
-        url.searchParams.set('checkout',    filters.checkout);
-        a.href = url.toString();
+    function showSuggestions(query) {
+      suggestions.innerHTML = '';
+      const list = query === ''
+        ? ['All islands', ...islands]
+        : islands.filter(i => i.toLowerCase().includes(query.toLowerCase()));
 
-        const rm    = h.rooms[0];
-        const price = filters.nationality === 'Foreigner'
-          ? rm.guestPrice
-          : rm.localPrice;
-
-        a.innerHTML = `
-          <img src="${h.images[0]}" alt="${h.name}">
-          <div class="hotel-card-content">
-            <h2>${h.name}</h2>
-            <p><strong>${rm.type}</strong> from $${price}/night</p>
-            <p>Island: ${h.island}</p>
-          </div>`;
-        c.append(a);
+      list.forEach(item => {
+        const div = document.createElement('div');
+        div.textContent = item;
+        div.addEventListener('click', () => {
+          input.value = item === 'All islands' ? '' : item;
+          suggestions.innerHTML = '';
+        });
+        suggestions.appendChild(div);
       });
     }
+
+    form.addEventListener('submit', e => {
+      e.preventDefault();
+      const params = new URLSearchParams(new FormData(form));
+      window.location.href = `results.html?${params.toString()}`;
+    });
   </script>
 </body>
 </html>
