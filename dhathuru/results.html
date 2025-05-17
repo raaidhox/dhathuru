@@ -1,0 +1,233 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Available Guesthouses</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap');
+    :root {
+      --clr-bg: #f0f2f5;
+      --clr-card-bg: #ffffff;
+      --clr-primary: #5a67d8;
+      --clr-primary-light: #7f94f7;
+      --clr-text: #2d3748;
+      --clr-border: #e2e8e0;
+      --clr-shadow: rgba(0, 0, 0, 0.05);
+      --input-bg: #fff;
+      --input-border: #d1d5db;
+      --btn-bg: #e0e0e0;
+      --btn-active: #5a67d8;
+      --btn-text-active: #fff;
+      --suggest-bg: #fff;
+      --suggest-border: #ccc;
+      --suggest-hover: #efefef;
+    }
+    *, *::before, *::after { box-sizing: border-box; }
+    body {
+      background-color: var(--clr-bg);
+      font-family: 'Inter', sans-serif;
+      color: var(--clr-text);
+      max-width: 1000px;
+      margin: 2em auto;
+      padding: 0 1em;
+      line-height: 1.6;
+    }
+    h1 { text-align: center; font-weight: 600; color: var(--clr-primary); margin-bottom: 1rem; }
+
+    /* Summary bar */
+    #summaryBar { background: var(--clr-card-bg); padding: .75rem 1rem; border: 1px solid var(--clr-border); border-radius: .5rem; display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; }
+    #summaryText { font-size: .95rem; }
+    #editBtn { background: var(--btn-bg); border: none; border-radius: .25rem; padding: .5rem 1rem; cursor: pointer; transition: background .2s; }
+    #editBtn:hover { background: var(--btn-active); color: var(--btn-text-active); }
+
+    /* Filter panel */
+    #filterPanel { background: var(--clr-card-bg); padding: 1rem; border: 1px solid var(--clr-border); border-radius: .5rem; margin-bottom: 1.5rem; display: none; position: relative; }
+    #filterPanel label { display: block; margin-top: .5rem; font-weight: 500; }
+    #filterPanel input[type="text"], #filterPanel select, #filterPanel input[type="date"] { width: calc(33% - 1rem); margin-right: 1rem; margin-bottom: .75rem; padding: .5rem; border: 1px solid var(--input-border); border-radius: .25rem; background: var(--input-bg); font-size: 1rem; }
+    #filterPanel .radio-group-mini { display: flex; gap: .5rem; margin-top: .5rem; }
+    #filterPanel .radio-group-mini input[type="radio"] { display: none; }
+    #filterPanel .radio-group-mini label { flex: 1; text-align: center; padding: .5rem; background: var(--btn-bg); border-radius: .25rem; cursor: pointer; user-select: none; transition: background .2s, color .2s; }
+    #filterPanel .radio-group-mini input:checked + label { background: var(--btn-active); color: var(--btn-text-active); }
+    #filterPanel #suggestions-filter { position: absolute; top: 2.5rem; left: 1rem; right: 1rem; background: var(--suggest-bg); border: 1px solid var(--suggest-border); border-radius: .25rem; max-height: 6rem; overflow-y: auto; z-index: 5; }
+    #filterPanel button { padding: .5rem 1rem; background: var(--clr-primary); color: #fff; border: none; border-radius: .25rem; cursor: pointer; }
+
+    /* Results grid */
+    #results { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 1.5rem; }
+    .hotel-card { background: var(--clr-card-bg); border: 1px solid var(--clr-border); border-radius: .75rem; overflow: hidden; text-decoration: none; color: inherit; box-shadow: 0 2px 6px var(--clr-shadow); transition: transform .2s, box-shadow .2s; display: flex; flex-direction: column; }
+    .hotel-card:hover { transform: translateY(-4px); box-shadow: 0 4px 12px var(--clr-shadow); }
+    .hotel-card img { width: 100%; height: 160px; object-fit: cover; border-bottom: 1px solid var(--clr-border); }
+    .hotel-card-content { padding: 1rem; flex: 1; display: flex; flex-direction: column; }
+    .hotel-card-content h2 { margin: 0 0 .5rem; font-size: 1.25rem; font-weight: 500; }
+    .hotel-card-content p { margin: .25rem 0; font-size: .95rem; flex-grow: 1; }
+  </style>
+</head>
+<body>
+  <h1>Available Guesthouses</h1>
+  <div id="summaryBar">
+    <div id="summaryText"></div>
+    <button id="editBtn">Edit search</button>
+  </div>
+  <div id="filterPanel">
+    <label for="islandFilter">Island</label>
+    <input type="text" id="islandFilter" placeholder="All islands…" autocomplete="off">
+    <div id="suggestions-filter"></div>
+    <label>Nationality</label>
+    <div class="radio-group-mini">
+      <input type="radio" id="fMaldivian" name="natFilter" value="Maldivian">
+      <label for="fMaldivian">Maldivian</label>
+      <input type="radio" id="fForeigner" name="natFilter" value="Foreigner">
+      <label for="fForeigner">Foreigner</label>
+    </div>
+    <label for="adultsFilter">Adults</label>
+    <select id="adultsFilter"><option>1</option><option>2</option><option>3</option><option>4</option></select>
+    <label for="kidsFilter">Kids</label>
+    <select id="kidsFilter"><option>0</option><option>1</option><option>2</option></select>
+    <label for="checkinFilter">Check-in</label>
+    <input type="date" id="checkinFilter">
+    <label for="checkoutFilter">Check-out</label>
+    <input type="date" id="checkoutFilter">
+    <button id="applyFilter">Apply</button>
+  </div>
+  <div id="results"></div>
+  <script>
+    let allHotels = [], islandsList = [];
+
+    const summaryText = document.getElementById('summaryText');
+    const filterPanel = document.getElementById('filterPanel');
+    const editBtn = document.getElementById('editBtn');
+    const mini = {
+      island: document.getElementById('islandFilter'),
+      natRadios: document.getElementsByName('natFilter'),
+      adults: document.getElementById('adultsFilter'),
+      kids: document.getElementById('kidsFilter'),
+      checkin: document.getElementById('checkinFilter'),
+      checkout: document.getElementById('checkoutFilter'),
+      suggestions: document.getElementById('suggestions-filter')
+    };
+
+    function updateSummary({island, nationality, adults, kids, checkin, checkout}) {
+      summaryText.textContent =
+        (island || 'All islands') + ' — ' +
+        adults + ' adult(s), ' + kids + ' child(ren)' +
+        (checkin ? ' — ' + checkin + ' → ' + checkout : '');
+    }
+
+    fetch('../dhathuru/data/guesthouse.json')
+      .then(r => r.json())
+      .then(data => {
+        allHotels = data.hotels;
+        islandsList = [...new Set(allHotels.map(h => h.island))].sort();
+
+        // read initial URL params
+        const params = new URLSearchParams(window.location.search);
+        const init = {
+          island:     params.get('island')      || '',
+          nationality: params.get('nationality')|| 'Maldivian',
+          adults:     params.get('adults')      || '1',
+          kids:       params.get('kids')        || '0',
+          checkin:    params.get('checkin')     || '',
+          checkout:   params.get('checkout')    || ''
+        };
+
+        // set filter inputs to match init
+        mini.island.value = init.island;
+        for (const r of mini.natRadios) if (r.value === init.nationality) r.checked = true;
+        mini.adults.value   = init.adults;
+        mini.kids.value     = init.kids;
+        mini.checkin.value  = init.checkin;
+        mini.checkout.value = init.checkout;
+
+        updateSummary(init);
+        renderResults(allHotels, init);
+      });
+
+    editBtn.addEventListener('click', () => {
+      filterPanel.style.display =
+        filterPanel.style.display === 'block' ? 'none' : 'block';
+    });
+
+    mini.island.addEventListener('focus', () => showSuggestions());
+    mini.island.addEventListener('input', () => showSuggestions(mini.island.value));
+
+    document.addEventListener('click', e => {
+      if (!filterPanel.contains(e.target)) mini.suggestions.innerHTML = '';
+    });
+
+    function showSuggestions(q = '') {
+      mini.suggestions.innerHTML = '';
+      const base = ['All islands', ...islandsList];
+      const list = q
+        ? base.filter(i => i.toLowerCase().includes(q.toLowerCase()))
+        : base;
+      list.forEach(item => {
+        const div = document.createElement('div');
+        div.textContent = item;
+        div.style.padding = '.25rem .5rem';
+        div.style.cursor  = 'pointer';
+        div.addEventListener('click', () => {
+          mini.island.value = item === 'All islands' ? '' : item;
+          mini.suggestions.innerHTML = '';
+        });
+        mini.suggestions.append(div);
+      });
+    }
+
+    document.getElementById('applyFilter').addEventListener('click', () => {
+      const sel = {
+        island:     mini.island.value,
+        nationality: [...mini.natRadios].find(r => r.checked)?.value || 'Maldivian',
+        adults:     mini.adults.value,
+        kids:       mini.kids.value,
+        checkin:    mini.checkin.value,
+        checkout:   mini.checkout.value
+      };
+      updateSummary(sel);
+      renderResults(
+        allHotels.filter(h =>
+          !sel.island || h.island.toLowerCase() === sel.island.toLowerCase()
+        ),
+        sel
+      );
+      filterPanel.style.display = 'none';
+    });
+
+    function renderResults(hotels, filters) {
+      const c = document.getElementById('results');
+      c.innerHTML = '';
+      if (!hotels.length) {
+        c.innerHTML = '<p>No guesthouses found.</p>';
+        return;
+      }
+      hotels.forEach(h => {
+        const a = document.createElement('a');
+        a.className = 'hotel-card';
+        // build URL with all filter params
+        const url = new URL('details.html', window.location.origin);
+        url.searchParams.set('hotelId',     h.id);
+        url.searchParams.set('island',      filters.island);
+        url.searchParams.set('nationality', filters.nationality);
+        url.searchParams.set('adults',      filters.adults);
+        url.searchParams.set('kids',        filters.kids);
+        url.searchParams.set('checkin',     filters.checkin);
+        url.searchParams.set('checkout',    filters.checkout);
+        a.href = url.toString();
+
+        const rm = h.rooms[0];
+        const price = filters.nationality === 'Foreigner'
+          ? rm.guestPrice
+          : rm.localPrice;
+
+        a.innerHTML = `
+          <img src="${h.images[0]}" alt="${h.name}">
+          <div class="hotel-card-content">
+            <h2>${h.name}</h2>
+            <p><strong>${rm.type}</strong> from $${price}/night</p>
+            <p>Island: ${h.island}</p>
+          </div>`;
+        c.append(a);
+      });
+    }
+  </script>
+</body>
+</html>
+

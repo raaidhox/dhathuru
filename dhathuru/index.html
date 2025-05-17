@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Guesthouse Search</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600&display=swap');
+    :root {
+      --primary: #6C63FF;
+      --primary-light: #8A85FF;
+      --bg: #F5F7FA;
+      --text: #333;
+      --input-bg: #fff;
+      --input-border: #DDD;
+      --suggest-bg: #fff;
+      --suggest-border: #CCC;
+      --suggest-hover: #EFEFEF;
+      --btn-bg: #e0e0e0;
+      --btn-active: #6C63FF;
+      --btn-text-active: #fff;
+    }
+    *, *::before, *::after { box-sizing: border-box; }
+    body {
+      font-family: 'Poppins', sans-serif;
+      background-color: var(--bg);
+      color: var(--text);
+      max-width: 600px;
+      margin: 2rem auto;
+      padding: 0 1rem;
+      line-height: 1.6;
+    }
+    label { display: block; margin-top: 1.5rem; font-weight: 500; color: var(--primary); }
+    input[type="text"], select, input[type="date"] {
+      width: 100%; padding: .75rem 1rem; margin-top: .5rem;
+      border: 1px solid var(--input-border); border-radius: .5rem;
+      background: var(--input-bg); font-size: 1rem;
+    }
+    #suggestions {
+      position: absolute;
+      width: calc(100% - 2rem);
+      background: var(--suggest-bg);
+      border: 1px solid var(--suggest-border);
+      border-radius: .5rem;
+      margin-top: -0.5rem;
+      max-height: 8rem;
+      overflow-y: auto;
+      z-index: 10;
+    }
+    #suggestions div { padding: .5rem 1rem; cursor: pointer; }
+    #suggestions div:hover { background: var(--suggest-hover); }
+    .radio-group { display: flex; gap: 1rem; margin-top: .5rem; }
+    .radio-group input[type="radio"] { display: none; }
+    .radio-group label {
+      flex: 1; text-align: center; padding: .75rem 1rem;
+      background: var(--btn-bg); border-radius: .5rem;
+      cursor: pointer; user-select: none;
+      transition: background 0.2s ease, color 0.2s ease;
+    }
+    .radio-group input[type="radio"]:checked + label {
+      background: var(--btn-active); color: var(--btn-text-active);
+    }
+    button[type="submit"] {
+      margin-top:1.5rem; background:var(--primary); color:#fff;
+      padding:.75rem 1.5rem; border:none; border-radius:.5rem;
+      font-weight:600; cursor:pointer;
+    }
+    form { position: relative; }
+  </style>
+</head>
+<body>
+  <h1>Find Your Guesthouse</h1>
+  <form id="searchForm">
+    <label for="islandInput">Island</label>
+    <input type="text" id="islandInput" name="island" placeholder="All islands…" autocomplete="off">
+    <div id="suggestions"></div>
+
+    <label>Nationality (required)</label>
+    <div class="radio-group">
+      <input type="radio" id="natMaldivian" name="nationality" value="Maldivian" required>
+      <label for="natMaldivian">Maldivian</label>
+      <input type="radio" id="natForeigner" name="nationality" value="Foreigner">
+      <label for="natForeigner">Foreigner</label>
+    </div>
+
+    <label for="adultsSelect">Adults</label>
+    <select id="adultsSelect" name="adults">
+      <option>1</option><option>2</option><option>3</option><option>4</option>
+    </select>
+    <label for="kidsSelect">Kids</label>
+    <select id="kidsSelect" name="kids">
+      <option>0</option><option>1</option><option>2</option>
+    </select>
+    <label for="checkin">Check-in</label>
+    <input type="date" id="checkin" name="checkin" required>
+    <label for="checkout">Check-out</label>
+    <input type="date" id="checkout" name="checkout" required>
+    <button type="submit">Search</button>
+  </form>
+
+  <script>
+    let islands = [];
+    const form = document.getElementById('searchForm');
+    const input = document.getElementById('islandInput');
+    const suggestions = document.getElementById('suggestions');
+
+    fetch('../dhathuru/data/guesthouse.json')
+      .then(r => r.json())
+      .then(obj => {
+        islands = [...new Set(obj.hotels.map(h => h.island))].sort();
+      });
+
+    // Show suggestions on focus and input
+    input.addEventListener('focus', () => showSuggestions(''));
+    input.addEventListener('input', () => showSuggestions(input.value.trim()));
+
+    // Only clear when clicking outside form
+    document.addEventListener('click', e => {
+      if (!form.contains(e.target)) {
+        suggestions.innerHTML = '';
+      }
+    });
+
+    function showSuggestions(query) {
+      suggestions.innerHTML = '';
+      const list = query === ''
+        ? ['All islands', ...islands]
+        : islands.filter(i => i.toLowerCase().includes(query.toLowerCase()));
+
+      list.forEach(item => {
+        const div = document.createElement('div');
+        div.textContent = item;
+        div.addEventListener('click', () => {
+          input.value = item === 'All islands' ? '' : item;
+          suggestions.innerHTML = '';
+        });
+        suggestions.appendChild(div);
+      });
+    }
+
+    form.addEventListener('submit', e => {
+      e.preventDefault();
+      const params = new URLSearchParams(new FormData(form));
+      window.location.href = `results.html?${params.toString()}`;
+    });
+  </script>
+</body>
+</html>
