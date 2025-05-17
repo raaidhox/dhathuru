@@ -49,7 +49,7 @@
     const adults   = params.get('adults')   || '0';
     const kids     = params.get('kids')     || '0';
 
-    fetch('../data/guesthouse.json')
+    fetch('../dhathuru/data/guesthouse.json')
       .then(r => r.json())
       .then(data => {
         const hotels = data.hotels.filter(h =>
