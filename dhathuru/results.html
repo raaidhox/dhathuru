@@ -277,7 +277,7 @@ href="https://cdn.jsdelivr.net/npm/flatpickr@4.6.13/dist/themes/airbnb.css">
       hotels.forEach(h=>{
         const a=document.createElement('a');
         a.className='hotel-card';
-        const url=new URL('details.html',location.origin);
+        const url=new URL('dhathuru/dhathuru/details.html',location.origin);
         url.searchParams.set('hotelId',h.id);
         url.searchParams.set('island',f.island);
         url.searchParams.set('nationality',f.nationality);
@@ -285,7 +285,7 @@ href="https://cdn.jsdelivr.net/npm/flatpickr@4.6.13/dist/themes/airbnb.css">
         url.searchParams.set('kids',f.kids);
         url.searchParams.set('checkin',f.checkin);
         url.searchParams.set('checkout',f.checkout);
-        a.href=url.toString(dhathuru/dhathuru/details.html);
+        a.href=url.toString();
     
         const rm=h.rooms[0];
         const price=(f.nationality==='Foreigner')?rm.guestPrice:rm.localPrice;
