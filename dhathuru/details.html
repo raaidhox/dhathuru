@@ -120,7 +120,7 @@
       font-weight:600;
       margin-top:1rem;
     }
-    #checkBtn {
+    #bookBtn {
       display:block;
       width:100%;
       padding:.75rem;
@@ -192,20 +192,28 @@
   </label>
 </div>
 
+<!-- contact + action (inside the same card where you show Total) -->
+<input id="emailInput" type="email" placeholder="E-mail" required>
+<input id="whatsInput" type="tel"   placeholder="WhatsApp (+country)" required>
+
+
 
   <div id="total">Total: $0.00</div>
-  <a id="checkBtn" href="" target="_blank">Check Availability</a>
+  <button id="bookBtn">Book now</button>
+  <p id="msg" style="margin-top:.4rem;color:#5a67d8;"></p>
 
   <script>
-    /* --------------------------------------------------
-       Simple helper: number of nights between 2 ISO dates
-    -------------------------------------------------- */
-    function nights(a, b) {
-      return Math.round((new Date(b) - new Date(a)) / 8.64e7); // 86 400 000 ms
-    }
+    document.addEventListener('DOMContentLoaded', () => {
     
     /* --------------------------------------------------
-       Read query-string parameters
+       Helpers
+    -------------------------------------------------- */
+    const ONE_DAY = 8.64e7;
+    const nights  = (a,b)=>Math.round((new Date(b)-new Date(a))/ONE_DAY);
+    const $       = id => document.getElementById(id);
+    
+    /* --------------------------------------------------
+       Query-string params
     -------------------------------------------------- */
     const qs            = new URLSearchParams(location.search);
     const hotelId       = qs.get('hotelId');
@@ -215,177 +223,186 @@
     const kids          = qs.get('kids')        || '0';
     const checkin       = qs.get('checkin')     || '';
     const checkout      = qs.get('checkout')    || '';
-    const totalGuests   = Number(adults) + Number(kids);
+    const totalGuests   = +adults + +kids;
     
-    /* --------------------------------------------------
-       Mini summary bar
-    -------------------------------------------------- */
-    const summaryText = document.getElementById('summaryText');
-    summaryText.textContent =
-      (island || 'All islands') +
-      ' — ' + adults + ' adult(s), ' + kids + ' child(ren)' +
+    /* mini-summary bar */
+    $('summaryText').textContent =
+      (island||'All islands') + ' — ' + adults + ' adult(s), ' + kids + ' child(ren)' +
       (checkin ? ' — ' + checkin + ' → ' + checkout : '');
+    $('editBtn').onclick = () => location.href = 'results.html?' + location.search;
     
-    document.getElementById('editBtn').onclick = function () {
-      window.location.href = 'results.html?' + location.search;
-    };
-    
-    /* --------------------------------------------------
-       State holders
-    -------------------------------------------------- */
-    let roomCounts      = {};
-    let currentHotel    = null;
-    let includeTransfer = false;
-    
-    const transferToggle = document.getElementById('transferToggle');
+    /* state */
+    let roomCounts = {}, currentHotel = null, includeTransfer = false;
     
     /* --------------------------------------------------
-       Fetch data and build page
+       Fetch JSON  → build page
     -------------------------------------------------- */
     fetch('../dhathuru/data/guesthouse.json')
-      .then(function (res) { return res.json(); })
-      .then(function (data) {
+      .then(r=>r.json())
+      .then(data=>{
+        currentHotel = data.hotels.find(h=>h.id === hotelId);
+        if(!currentHotel){ alert('Hotel not found'); return; }
     
-        /* ---- locate hotel ---- */
-        const hotel = data.hotels.find(function (h) { return h.id === hotelId; });
-        if (!hotel) { alert('Hotel not found'); return; }
-        currentHotel = hotel;
+        /* top card */
+        $('hotelName').textContent = currentHotel.name;
+        $('hotelDesc').textContent = currentHotel.description;
+        $('hotelImg').src          = currentHotel.images[0] || '';
     
-        /* ---- top card ---- */
-        document.getElementById('hotelName').textContent = hotel.name;
-        document.getElementById('hotelDesc').textContent = hotel.description;
-        document.getElementById('hotelImg').src          = hotel.images[0] || '';
+        /* amenities */
+        const amen = $('amenities'); amen.innerHTML='';
+        (currentHotel.amenities||[]).forEach(a=>{
+          const s = document.createElement('span'); s.textContent = a; amen.appendChild(s);
+        });
     
-        /* amenities pills */
-        const amenBox = document.getElementById('amenities');
-        amenBox.innerHTML = '';
-        if (Array.isArray(hotel.amenities)) {
-          hotel.amenities.forEach(function (am) {
-            const span = document.createElement('span');
-            span.textContent = am;
-            amenBox.appendChild(span);
-          });
+        /* transfer box */
+        if (currentHotel.transfer && currentHotel.transfer.type){
+          const rate = nationality==='Foreigner'
+              ? currentHotel.transfer.guestPrice
+              : currentHotel.transfer.localPrice;
+          $('transferLabel').textContent =
+            `${currentHotel.transfer.type} transfer to ${currentHotel.island} ($${rate} pp)`;
+          $('transferBox').style.display='block';
+          $('transferToggle').onchange = e => { includeTransfer = e.target.checked; updateTotal(); };
         }
     
-        /* ---- transfer box (once) ---- */
-        if (hotel.transfer && hotel.transfer.type) {
-          const rate        = (nationality === 'Foreigner')
-            ? hotel.transfer.guestPrice
-            : hotel.transfer.localPrice;
-    
-          const box   = document.getElementById('transferBox');
-          const label = document.getElementById('transferLabel');
-          label.textContent =
-            hotel.transfer.type + ' transfer to ' + hotel.island +
-            ' ($' + rate + ' per person)';
-          box.style.display = 'block';
-    
-          transferToggle.checked  = false;
-          transferToggle.onchange = function () {
-            includeTransfer = transferToggle.checked;
-            updateTotal();
-          };
-        }
-    
-        /* ---- room cards ---- */
-        const roomsDiv = document.getElementById('roomsContainer');
-        hotel.rooms.forEach(function (rm) {
+        /* room cards */
+        const wrap = $('roomsContainer');
+        currentHotel.rooms.forEach(rm=>{
           roomCounts[rm.type] = 0;
-    
-          const rate = (nationality === 'Foreigner') ? rm.guestPrice : rm.localPrice;
-    
+          const rate = nationality==='Foreigner' ? rm.guestPrice : rm.localPrice;
           const card = document.createElement('div');
-          card.className = 'room';
-          card.innerHTML =
-            '<img src="' + rm.image + '" alt="' + rm.type + '">' +
-            '<div class="room-info">' +
-              '<h3>' + rm.type + '</h3>' +
-              '<p>' + (rm.description || ('Sleeps ' + rm.capacity)) + '</p>' +
-              '<p><strong>$' + rate + '</strong> / night</p>' +
-              '<div class="room-controls">' +
-                '<button data-type="' + rm.type + '" class="dec">−</button>' +
-                '<span id="count-' + rm.type + '">0</span>' +
-                '<button data-type="' + rm.type + '" class="inc">＋</button>' +
-              '</div>' +
-            '</div>';
-          roomsDiv.appendChild(card);
+          card.className='room';
+          card.innerHTML = `
+            <img src="${rm.image}" alt="${rm.type}">
+            <div class="room-info">
+              <h3>${rm.type}</h3>
+              <p>${rm.description || ('Sleeps ' + rm.capacity)}</p>
+              <p><strong>$${rate}</strong> / night</p>
+              <div class="room-controls">
+                <button data-type="${rm.type}" class="dec">−</button>
+                <span id="count-${rm.type}">0</span>
+                <button data-type="${rm.type}" class="inc">＋</button>
+              </div>
+            </div>`;
+          wrap.appendChild(card);
         });
     
-        /* + / − buttons */
-        document.querySelectorAll('.inc').forEach(function (btn) {
-          btn.onclick = function () {
-            const t = btn.dataset.type;
-            roomCounts[t]++;
-            document.getElementById('count-' + t).textContent = roomCounts[t];
-            updateTotal();
-          };
-        });
-        document.querySelectorAll('.dec').forEach(function (btn) {
-          btn.onclick = function () {
-            const t = btn.dataset.type;
-            if (roomCounts[t] > 0) {
-              roomCounts[t]--;
-              document.getElementById('count-' + t).textContent = roomCounts[t];
-              updateTotal();
-            }
-          };
+        /* + / − handlers */
+        wrap.addEventListener('click',e=>{
+          const btn=e.target, t = btn.dataset.type;
+          if(!t) return;
+          if(btn.classList.contains('inc')) roomCounts[t]++;
+          else if(btn.classList.contains('dec') && roomCounts[t]>0) roomCounts[t]--;
+          $('count-'+t).textContent = roomCounts[t];
+          updateTotal();
         });
     
-        /* initial total */
+        /* first total */
         updateTotal();
-    
-        /* external booking form link */
-        document.getElementById('checkBtn').href = 'https://forms.gle/your-google-form';
       });
     
     /* --------------------------------------------------
-       Recalculate total anytime something changes
+       Total calculator
     -------------------------------------------------- */
-    function updateTotal() {
-      if (!currentHotel) return;
+    function updateTotal(){
+      if(!currentHotel) return;
     
-      /* 1) capacity check */
+      /* capacity check */
       let beds = 0;
-      currentHotel.rooms.forEach(function (rm) {
-        beds += roomCounts[rm.type] * (rm.capacity || 0);
-      });
-      if (beds < totalGuests) {
-        document.getElementById('total').textContent =
-          'Select more rooms – current selection sleeps ' + beds +
-          ' but you have ' + totalGuests + ' guest' +
-          (totalGuests > 1 ? 's.' : '.');
+      currentHotel.rooms.forEach(r=> beds += roomCounts[r.type] * (r.capacity || 0));
+      if(beds < totalGuests){
+        $('total').textContent =
+          `Select more rooms – current selection sleeps ${beds} but you have ${totalGuests} guest${totalGuests>1?'s':''}.`;
         return;
       }
     
-      /* 2) base cost */
-      const nightsStay = nights(checkin, checkout) || 1;
-      let total = 0;
-      currentHotel.rooms.forEach(function (rm) {
-        const rate = (nationality === 'Foreigner') ? rm.guestPrice : rm.localPrice;
-        total += roomCounts[rm.type] * rate * nightsStay;
+      /* base cost */
+      const stay = nights(checkin,checkout) || 1;
+      let total  = 0;
+      currentHotel.rooms.forEach(r=>{
+        const rate = nationality==='Foreigner' ? r.guestPrice : r.localPrice;
+        total += roomCounts[r.type] * rate * stay;
       });
     
-      /* 3) transfer cost */
-      let transferCost = 0;
-      if (includeTransfer && currentHotel.transfer) {
-        const rate = (nationality === 'Foreigner')
+      /* transfer cost */
+      let tCost = 0;
+      if(includeTransfer && currentHotel.transfer){
+        const rate = nationality==='Foreigner'
           ? currentHotel.transfer.guestPrice
           : currentHotel.transfer.localPrice;
-        transferCost = rate * totalGuests;
-        total       += transferCost;
+        tCost = rate * totalGuests; total += tCost;
       }
     
-      /* 4) display */
-      let line = 'Total for ' + nightsStay + ' night' +
-                 (nightsStay > 1 ? 's' : '') + ': $' + total.toFixed(2);
-      if (transferCost) {
-        line += ' (includes transfer $' + transferCost.toFixed(2) + ')';
-      }
-      document.getElementById('total').textContent = line;
+      let line = `Total for ${stay} night${stay>1?'s':''}: $${total.toFixed(2)}`;
+      if(tCost) line += ` (includes transfer $${tCost.toFixed(2)})`;
+      $('total').textContent = line;
     }
+    
+    /* --------------------------------------------------
+       Send booking to Apps Script
+    -------------------------------------------------- */
+    $('bookBtn').addEventListener('click', async () => {
+      const email = $('emailInput').value.trim();
+      const whats = $('whatsInput').value.trim();
+      const msg   = $('msg');
+    
+      if(!email || !whats){
+        msg.style.color='crimson';
+        msg.textContent = 'Please enter e-mail and WhatsApp.';
+        return;
+      }
+    
+      msg.style.color = '#5a67d8';
+      msg.textContent = 'Sending…';
+    
+      const payload = {
+        timestamp      : new Date().toISOString(),
+        hotelId,
+        hotelName      : currentHotel.name,
+        island,
+        nationality,
+        adults,
+        kids,
+        checkin,
+        checkout,
+        rooms          : JSON.stringify(roomCounts),
+        includeTransfer,
+        transferType   : includeTransfer ? currentHotel.transfer.type : 'No',
+        totalGuests,
+        totalLine      : $('total').textContent,
+        email,
+        whatsapp       : whats
+      };
+    
+      try {
+        /* Google Apps-Script Web-app URL */
+        const scriptURL = 'https://script.google.com/macros/s/AKfycbxJKU9e1qVwoh1hTdU7ePFokyIQxtAycOr8HRnjqCV3qZ8j3Kp17yvlLHekOA9SY_Ab/exec';
+    
+        /* URL-encoded body (avoids CORS pre-flight) */
+        const body = new URLSearchParams(payload).toString();
+    
+        const res = await fetch(scriptURL, {
+          method : 'POST',
+          headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+          body
+        });
+    
+        if (!res.ok) throw new Error(await res.text());
+    
+        msg.style.color = 'green';
+        msg.textContent = 'Booking sucessfully sent We are checking avalibility and will whatsapp/email you with details within 12 hours';
+        $('bookBtn').disabled = true;
+    
+      } catch (e) {
+        msg.style.color = 'crimson';
+        msg.textContent = 'Error: ' + e.message;
+      }
+    });
+    
+    }); // DOMContentLoaded
     </script>
+    
+    
     
 </body>
 </html>
-
-
