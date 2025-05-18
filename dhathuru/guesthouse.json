@@ -8,7 +8,8 @@
       "contact": {
         "phone": "",
         "email": ""
-      },
+      },"amenities": ["Wi-Fi","Breakfast","Airport transfer"]
+,
       "rooms": [
         {
           "type": "Deluxe",
@@ -226,3 +227,4 @@
     }
   ]
 }
+
