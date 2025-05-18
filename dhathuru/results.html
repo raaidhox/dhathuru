@@ -112,6 +112,29 @@
         adults + ' adult(s), ' + kids + ' child(ren)' +
         (checkin ? ' — ' + checkin + ' → ' + checkout : '');
     }
+    /* ——— helper: collect current control values ——— */
+function gatherFilters() {
+  return {
+    island:      mini.island.value.trim(),
+    nationality: [...mini.natRadios].find(r => r.checked)?.value || 'Maldivian',
+    adults:      mini.adults.value,
+    kids:        mini.kids.value,
+    checkin:     mini.checkin.value,
+    checkout:    mini.checkout.value
+  };
+}
+
+/* ——— helper: mirror those values into the address bar ——— */
+function updateURL(f) {
+  const p = new URLSearchParams();
+  if (f.island)      p.set('island',      f.island);
+  p.set('nationality', f.nationality);
+  p.set('adults',      f.adults);
+  p.set('kids',        f.kids);
+  if (f.checkin)   p.set('checkin',  f.checkin);
+  if (f.checkout)  p.set('checkout', f.checkout);
+  history.replaceState(null, '', '?' + p.toString());
+}
 
     fetch('../dhathuru/data/guesthouse.json')
       .then(r => r.json())
@@ -188,6 +211,7 @@
         checkout:    mini.checkout.value
       };
       updateSummary(sel);
+      updateURL(sel);
       renderResults(
         allHotels.filter(h =>
           !sel.island || h.island.toLowerCase() === sel.island.toLowerCase()
@@ -196,14 +220,30 @@
       );
       filterPanel.style.display = 'none';
     });
+    [...mini.natRadios].forEach(r => {
+  r.addEventListener('change', () => {
+    const f = gatherFilters();
+    updateSummary(f);     // update the sentence
+    updateURL(f);         // push params to the URL
+
+    const list = allHotels.filter(
+      h => !f.island || h.island.toLowerCase() === f.island.toLowerCase()
+    );
+    renderResults(list, f);
+  });
+});
+
 
     function renderResults(hotels, filters) {
       const c = document.getElementById('results');
       c.innerHTML = '';
       if (!hotels.length) {
-        c.innerHTML = '<p>No guesthouses found.</p>';
-        return;
-      }
+  const islandName = filters.island ? `"${filters.island}"` : 'that island';
+  c.innerHTML =
+    `<p>No guest house found for island: <strong>${islandName}</strong> &mdash; displaying all guest houses:</p>`;
+  hotels = allHotels;   // fall back to the full list
+}
+
       hotels.forEach(h => {
         const a = document.createElement('a');
         a.className = 'hotel-card';
@@ -235,6 +275,7 @@
   </script>
 </body>
 </html>
+
 
 
 
