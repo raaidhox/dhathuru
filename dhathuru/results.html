@@ -1,8 +1,15 @@
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
   <title>Available Guesthouses</title>
+  <!-- Flatpickr calendar -->
+<link rel="stylesheet"
+href="https://cdn.jsdelivr.net/npm/flatpickr@4.6.13/dist/themes/airbnb.css">
+<script defer
+  src="https://cdn.jsdelivr.net/npm/flatpickr@4.6.13/dist/flatpickr.min.js"></script>
+
   <style>
     @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap');
     :root {
@@ -42,7 +49,7 @@
 
     /* Filter panel */
     #filterPanel { background: var(--clr-card-bg); padding: 1rem; border: 1px solid var(--clr-border); border-radius: .5rem; margin-bottom: 1.5rem; display: none; position: relative; }
-    #filterPanel label { display: block; margin-top: .5rem; font-weight: 500; }
+    #filterPanel label { display: block; margin-top: .1rem; font-weight: 500; }
     #filterPanel input[type="text"], #filterPanel select, #filterPanel input[type="date"] { width: calc(33% - 1rem); margin-right: 1rem; margin-bottom: .75rem; padding: .5rem; border: 1px solid var(--input-border); border-radius: .25rem; background: var(--input-bg); font-size: 1rem; }
     #filterPanel .radio-group-mini { display: flex; gap: .5rem; margin-top: .5rem; }
     #filterPanel .radio-group-mini input[type="radio"] { display: none; }
@@ -82,198 +89,227 @@
     <select id="adultsFilter"><option>1</option><option>2</option><option>3</option><option>4</option></select>
     <label for="kidsFilter">Kids</label>
     <select id="kidsFilter"><option>0</option><option>1</option><option>2</option></select>
-    <label for="checkinFilter">Check-in</label>
-    <input type="date" id="checkinFilter">
-    <label for="checkoutFilter">Check-out</label>
-    <input type="date" id="checkoutFilter">
+    <label for="checkin">check in</label>
+    <input type="text" id="checkinFilter"  placeholder="Check-in"  autocomplete="off">
+    <label for="checkoutFilter">check out</label>
+    <input type="text" id="checkoutFilter" placeholder="Check-out" autocomplete="off">
+    
     <button id="applyFilter">Apply</button>
   </div>
   <div id="results"></div>
   <script>
+    /* --------------------------------------------------------------
+       RUN AFTER DOM IS READY
+    -------------------------------------------------------------- */
+    document.addEventListener('DOMContentLoaded', function () {
+    
+    /* ────────────────────────────────────────────────────────────
+       0.  FLATPICKR CALENDARS  — grey-out past days everywhere
+    ──────────────────────────────────────────────────────────── */
+    const ONE_DAY = 8.64e7;                    // milliseconds in a day
+    const today   = new Date();
+    const tomorrow= new Date(today.getFullYear(), today.getMonth(), today.getDate()+1);
+    
+    /* util → Date → ISO yyyy-mm-dd */
+    const iso = d => d.toISOString().split('T')[0];
+    
+    /* init pickers */
+    const fpIn  = flatpickr('#checkinFilter', {
+      dateFormat : 'Y-m-d',
+      minDate    : iso(tomorrow),
+      defaultDate: iso(tomorrow),
+      onChange   : syncOutMin
+    });
+    const fpOut = flatpickr('#checkoutFilter', {
+      dateFormat : 'Y-m-d',
+      minDate    : iso(new Date(tomorrow.getTime()+ONE_DAY)),
+      defaultDate: iso(new Date(tomorrow.getTime()+ONE_DAY))
+    });
+    function syncOutMin([ci]){
+      const next = new Date(ci.getTime()+ONE_DAY);
+      fpOut.set('minDate', iso(next));
+      if (fpOut.selectedDates[0] < next){      // auto-bump checkout if now invalid
+        fpOut.setDate(next, true);
+      }
+    }
+    
+    /* ────────────────────────────────────────────────────────────
+       1.  EXISTING VARIABLES & HELPERS  (unchanged)
+    ──────────────────────────────────────────────────────────── */
     let allHotels = [], islandsList = [];
-
+    
     const summaryText = document.getElementById('summaryText');
     const filterPanel = document.getElementById('filterPanel');
-    const editBtn = document.getElementById('editBtn');
+    const editBtn     = document.getElementById('editBtn');
+    
     const mini = {
-      island: document.getElementById('islandFilter'),
-      natRadios: document.getElementsByName('natFilter'),
-      adults: document.getElementById('adultsFilter'),
-      kids: document.getElementById('kidsFilter'),
-      checkin: document.getElementById('checkinFilter'),
-      checkout: document.getElementById('checkoutFilter'),
+      island     : document.getElementById('islandFilter'),
+      natRadios  : document.getElementsByName('natFilter'),
+      adults     : document.getElementById('adultsFilter'),
+      kids       : document.getElementById('kidsFilter'),
+      checkin    : document.getElementById('checkinFilter'),
+      checkout   : document.getElementById('checkoutFilter'),
       suggestions: document.getElementById('suggestions-filter')
     };
-
-    function updateSummary({island, nationality, adults, kids, checkin, checkout}) {
+    
+    function updateSummary({island,nationality,adults,kids,checkin,checkout}){
       summaryText.textContent =
-        (island || 'All islands') + ' — ' +
-        adults + ' adult(s), ' + kids + ' child(ren)' +
-        (checkin ? ' — ' + checkin + ' → ' + checkout : '');
+        (island || 'All islands')+' — '+adults+' adult(s), '+kids+' child(ren)'+
+        (checkin ? ' — '+checkin+' → '+checkout : '');
     }
-    /* ——— helper: collect current control values ——— */
-function gatherFilters() {
-  return {
-    island:      mini.island.value.trim(),
-    nationality: [...mini.natRadios].find(r => r.checked)?.value || 'Maldivian',
-    adults:      mini.adults.value,
-    kids:        mini.kids.value,
-    checkin:     mini.checkin.value,
-    checkout:    mini.checkout.value
-  };
-}
-
-/* ——— helper: mirror those values into the address bar ——— */
-function updateURL(f) {
-  const p = new URLSearchParams();
-  if (f.island)      p.set('island',      f.island);
-  p.set('nationality', f.nationality);
-  p.set('adults',      f.adults);
-  p.set('kids',        f.kids);
-  if (f.checkin)   p.set('checkin',  f.checkin);
-  if (f.checkout)  p.set('checkout', f.checkout);
-  history.replaceState(null, '', '?' + p.toString());
-}
-
+    
+    /* gather form → object */
+    function gatherFilters(){
+      return {
+        island     : mini.island.value.trim(),
+        nationality: [...mini.natRadios].find(r=>r.checked)?.value || 'Maldivian',
+        adults     : mini.adults.value,
+        kids       : mini.kids.value,
+        checkin    : mini.checkin.value,
+        checkout   : mini.checkout.value
+      };
+    }
+    
+    /* push those values into the address bar */
+    function updateURL(f){
+      const p = new URLSearchParams();
+      if (f.island) p.set('island',f.island);
+      p.set('nationality',f.nationality);
+      p.set('adults',f.adults);
+      p.set('kids',f.kids);
+      if (f.checkin)  p.set('checkin', f.checkin);
+      if (f.checkout) p.set('checkout',f.checkout);
+      history.replaceState(null,'','?'+p.toString());
+    }
+    
+    /* ────────────────────────────────────────────────────────────
+       2.  FETCH & INITIAL RENDER
+    ──────────────────────────────────────────────────────────── */
     fetch('../dhathuru/data/guesthouse.json')
-      .then(r => r.json())
-      .then(data => {
-        allHotels = data.hotels;
-        islandsList = [...new Set(allHotels.map(h => h.island))].sort();
-
-        // read initial URL params
-        const params = new URLSearchParams(window.location.search);
+      .then(r=>r.json())
+      .then(data=>{
+        allHotels   = data.hotels;
+        islandsList = [...new Set(allHotels.map(h=>h.island))].sort();
+    
+        const prm = new URLSearchParams(location.search);
         const init = {
-          island:      params.get('island')      || '',
-          nationality: params.get('nationality') || 'Maldivian',
-          adults:      params.get('adults')      || '1',
-          kids:        params.get('kids')        || '0',
-          checkin:     params.get('checkin')     || '',
-          checkout:    params.get('checkout')    || ''
+          island     : prm.get('island')      || '',
+          nationality: prm.get('nationality') || 'Maldivian',
+          adults     : prm.get('adults')      || '1',
+          kids       : prm.get('kids')        || '0',
+          checkin    : prm.get('checkin')     || iso(tomorrow),
+          checkout   : prm.get('checkout')    || iso(new Date(tomorrow.getTime()+ONE_DAY))
         };
-
-        // set filter inputs to match init
-        mini.island.value   = init.island;
-        for (const r of mini.natRadios) if (r.value === init.nationality) r.checked = true;
+    
+        /* sync controls */
+        mini.island.value = init.island;
+        [...mini.natRadios].forEach(r=>{ r.checked = r.value===init.nationality; });
         mini.adults.value   = init.adults;
         mini.kids.value     = init.kids;
-        mini.checkin.value  = init.checkin;
-        mini.checkout.value = init.checkout;
-
+        fpIn.setDate(init.checkin,true);
+        fpOut.setDate(init.checkout,true);
+    
         updateSummary(init);
-
-        // **prefilter by island on initial load**
+    
         const firstBatch = init.island
-          ? allHotels.filter(h => h.island.toLowerCase() === init.island.toLowerCase())
+          ? allHotels.filter(h => h.island.toLowerCase()===init.island.toLowerCase())
           : allHotels;
         renderResults(firstBatch, init);
       });
-
-    editBtn.addEventListener('click', () => {
+    
+    /* ────────────────────────────────────────────────────────────
+       3.  UI EVENTS
+    ──────────────────────────────────────────────────────────── */
+    editBtn.addEventListener('click',()=>{      // toggle filter panel
       filterPanel.style.display =
-        filterPanel.style.display === 'block' ? 'none' : 'block';
+        (filterPanel.style.display==='block') ? 'none' : 'block';
     });
-
-    mini.island.addEventListener('focus', () => showSuggestions());
-    mini.island.addEventListener('input', () => showSuggestions(mini.island.value));
-
-    document.addEventListener('click', e => {
-      if (!filterPanel.contains(e.target)) mini.suggestions.innerHTML = '';
+    mini.island.addEventListener('focus', ()=>showSug(''));
+    mini.island.addEventListener('input', ()=>showSug(mini.island.value));
+    document.addEventListener('click',e=>{
+      if(!filterPanel.contains(e.target)) mini.suggestions.innerHTML='';
     });
-
-    function showSuggestions(q = '') {
-      mini.suggestions.innerHTML = '';
-      const base = ['All islands', ...islandsList];
-      const list = q
-        ? base.filter(i => i.toLowerCase().includes(q.toLowerCase()))
-        : base;
-      list.forEach(item => {
-        const div = document.createElement('div');
-        div.textContent = item;
-        div.style.padding = '.25rem .5rem';
-        div.style.cursor  = 'pointer';
-        div.addEventListener('click', () => {
-          mini.island.value = item === 'All islands' ? '' : item;
-          mini.suggestions.innerHTML = '';
-        });
-        mini.suggestions.append(div);
+    
+    /* autocomplete */
+    function showSug(q=''){
+      mini.suggestions.innerHTML='';
+      const base=['All islands',...islandsList];
+      const list=q ? base.filter(i=>i.toLowerCase().includes(q.toLowerCase())) : base;
+      list.forEach(item=>{
+        const div=document.createElement('div');
+        div.textContent=item;
+        div.style.cssText='padding:.25rem .5rem;cursor:pointer;';
+        div.onclick = ()=>{ mini.island.value = (item==='All islands')?'':item;
+                            mini.suggestions.innerHTML=''; };
+        mini.suggestions.appendChild(div);
       });
     }
-
-    document.getElementById('applyFilter').addEventListener('click', () => {
-      const sel = {
-        island:      mini.island.value,
-        nationality: [...mini.natRadios].find(r => r.checked)?.value || 'Maldivian',
-        adults:      mini.adults.value,
-        kids:        mini.kids.value,
-        checkin:     mini.checkin.value,
-        checkout:    mini.checkout.value
-      };
-      updateSummary(sel);
-      updateURL(sel);
-      renderResults(
-        allHotels.filter(h =>
-          !sel.island || h.island.toLowerCase() === sel.island.toLowerCase()
-        ),
-        sel
-      );
-      filterPanel.style.display = 'none';
+    
+    /* Apply button */
+    document.getElementById('applyFilter').addEventListener('click',()=>{
+      const f = gatherFilters();
+      updateSummary(f); updateURL(f);
+      const list = allHotels.filter(h=>!f.island||h.island.toLowerCase()===f.island.toLowerCase());
+      renderResults(list,f);
+      filterPanel.style.display='none';
     });
-    [...mini.natRadios].forEach(r => {
-  r.addEventListener('change', () => {
-    const f = gatherFilters();
-    updateSummary(f);     // update the sentence
-    updateURL(f);         // push params to the URL
-
-    const list = allHotels.filter(
-      h => !f.island || h.island.toLowerCase() === f.island.toLowerCase()
-    );
-    renderResults(list, f);
-  });
-});
-
-
-    function renderResults(hotels, filters) {
-      const c = document.getElementById('results');
-      c.innerHTML = '';
-      if (!hotels.length) {
-  const islandName = filters.island ? `"${filters.island}"` : 'that island';
-  c.innerHTML =
-    `<p>No guest house found for island: <strong>${islandName}</strong> &mdash; displaying all guest houses:</p>`;
-  hotels = allHotels;   // fall back to the full list
-}
-
-      hotels.forEach(h => {
-        const a = document.createElement('a');
-        a.className = 'hotel-card';
-        const url = new URL('dhathuru/dhathuru/details.html', window.location.origin);
-        url.searchParams.set('hotelId',     h.id);
-        url.searchParams.set('island',      filters.island);
-        url.searchParams.set('nationality', filters.nationality);
-        url.searchParams.set('adults',      filters.adults);
-        url.searchParams.set('kids',        filters.kids);
-        url.searchParams.set('checkin',     filters.checkin);
-        url.searchParams.set('checkout',    filters.checkout);
-        a.href = url.toString();
-
-        const rm = h.rooms[0];
-        const price = filters.nationality === 'Foreigner'
-          ? rm.guestPrice
-          : rm.localPrice;
-
-        a.innerHTML = `
-          <img src="${h.images[0]}" alt="${h.name}">
-          <div class="hotel-card-content">
-            <h2>${h.name}</h2>
-            <p><strong>${rm.type}</strong> from $${price}/night</p>
-            <p>Island: ${h.island}</p>
-          </div>`;
-        c.append(a);
+    
+    /* nationality change triggers re-query */
+    [...mini.natRadios].forEach(r=>{
+      r.addEventListener('change',()=>{
+        const f=gatherFilters(); updateSummary(f); updateURL(f);
+        const list=allHotels.filter(h=>!f.island||h.island.toLowerCase()===f.island.toLowerCase());
+        renderResults(list,f);
+      });
+    });
+    
+    /* ────────────────────────────────────────────────────────────
+       4.  RENDER RESULTS  (unchanged except tiny fallback msg)
+    ──────────────────────────────────────────────────────────── */
+    function renderResults(hotels,f){
+      const box=document.getElementById('results');
+      box.innerHTML='';
+      if(!hotels.length){
+        const name=f.island?`"${f.island}"`:'that island';
+        box.innerHTML=`<p>No guesthouses on <strong>${name}</strong>. Showing all instead:</p>`;
+        hotels=allHotels;
+      }
+      hotels.forEach(h=>{
+        const a=document.createElement('a');
+        a.className='hotel-card';
+        const url=new URL('details.html',location.origin);
+        url.searchParams.set('hotelId',h.id);
+        url.searchParams.set('island',f.island);
+        url.searchParams.set('nationality',f.nationality);
+        url.searchParams.set('adults',f.adults);
+        url.searchParams.set('kids',f.kids);
+        url.searchParams.set('checkin',f.checkin);
+        url.searchParams.set('checkout',f.checkout);
+        a.href=url.toString();
+    
+        const rm=h.rooms[0];
+        const price=(f.nationality==='Foreigner')?rm.guestPrice:rm.localPrice;
+    
+        a.innerHTML=
+          `<img src="${h.images[0]}" alt="${h.name}">
+           <div class="hotel-card-content">
+             <h2>${h.name}</h2>
+             <p><strong>${rm.type}</strong> from $${price}/night</p>
+             <p>Island: ${h.island}</p>
+           </div>`;
+        box.appendChild(a);
       });
     }
-  </script>
+    
+    /* — end DOMContentLoaded — */
+    });
+    </script>
+    
 </body>
 </html>
+
+
+
 
 
 
