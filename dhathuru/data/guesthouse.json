@@ -5,10 +5,9 @@
       "name": "Paradise Retreat",
       "island": "Maafushi",
       "description": "Add your description here.",
-      "contact": {
-        "phone": "",
-        "email": ""
-      },
+      "transfer": { "type": "Speedboat", "guestPrice": 30, "localPrice": 25 },
+      "contact": { "phone": "", "email": "" },
+      "amenities": ["Wi-Fi", "Breakfast", "Airport transfer"],
       "rooms": [
         {
           "type": "Deluxe",
@@ -32,15 +31,14 @@
         "https://encrypted-tbn0.gstatic.com/licensed-image?q=tbn:ANd9GcQf5iMZJPPdcRONre7Ghk229-XaTZ9qU20ZBhiNPsLDkoEPlmfk9MZR_GJRiaStA8HX-Rt9J3E_z9Qf-UjlLGODzbiUHVtOiOnZaLN2AA"
       ]
     },
+
     {
       "id": "raaidh-house",
       "name": "Raaidh House",
       "island": "Maafushi",
       "description": "Add your description here.",
-      "contact": {
-        "phone": "",
-        "email": ""
-      },
+      "transfer": { "type": "Speedboat", "guestPrice": 30, "localPrice": 25 },
+      "contact": { "phone": "", "email": "" },
       "rooms": [
         {
           "type": "Indigo",
@@ -64,15 +62,14 @@
         "../images/2D48lcbvKw8M6GrmGPkYgqQRH.png"
       ]
     },
+
     {
       "id": "ocean-view",
       "name": "Ocean View",
       "island": "Gulhi",
       "description": "Stunning views of the ocean with modern amenities.",
-      "contact": {
-        "phone": "+960 123-4567",
-        "email": "info@oceanview.mv"
-      },
+      "transfer": { "type": "Speedboat", "guestPrice": 35, "localPrice": 30 },
+      "contact": { "phone": "+960 123-4567", "email": "info@oceanview.mv" },
       "rooms": [
         {
           "type": "Standard",
@@ -96,15 +93,14 @@
         "https://picsum.photos/seed/oceangallery2/800/600"
       ]
     },
+
     {
       "id": "sunset-escape",
       "name": "Sunset Escape",
       "island": "Thulusdhoo",
       "description": "Cozy beachside guesthouse perfect for watching sunsets.",
-      "contact": {
-        "phone": "+960 234-5678",
-        "email": "stay@sunsetescape.mv"
-      },
+      "transfer": { "type": "Speedboat", "guestPrice": 40, "localPrice": 35 },
+      "contact": { "phone": "+960 234-5678", "email": "stay@sunsetescape.mv" },
       "rooms": [
         {
           "type": "Beachfront",
@@ -128,15 +124,14 @@
         "https://picsum.photos/seed/sunsetgallery2/800/600"
       ]
     },
+
     {
       "id": "lagoon-resort",
       "name": "Lagoon Resort",
       "island": "Dhiffushi",
       "description": "Relax in bungalows over a turquoise lagoon.",
-      "contact": {
-        "phone": "+960 345-6789",
-        "email": "hello@lagoonresort.mv"
-      },
+      "transfer": { "type": "Local flight + speedboat", "guestPrice": 140, "localPrice": 120 },
+      "contact": { "phone": "+960 345-6789", "email": "hello@lagoonresort.mv" },
       "rooms": [
         {
           "type": "Water Bungalow",
@@ -160,15 +155,14 @@
         "https://picsum.photos/seed/lagoongallery2/800/600"
       ]
     },
+
     {
       "id": "reef-inn",
       "name": "Reef Inn",
       "island": "Himmafushi",
       "description": "Affordable comfort just steps from the reef.",
-      "contact": {
-        "phone": "+960 456-7890",
-        "email": "book@reefinn.mv"
-      },
+      "transfer": { "type": "Speedboat", "guestPrice": 45, "localPrice": 40 },
+      "contact": { "phone": "+960 456-7890", "email": "book@reefinn.mv" },
       "rooms": [
         {
           "type": "Twin",
@@ -192,15 +186,14 @@
         "https://picsum.photos/seed/reefgallery2/800/600"
       ]
     },
+
     {
       "id": "coral-cove",
       "name": "Coral Cove",
       "island": "Ukulhas",
       "description": "Charming guesthouse surrounded by coral gardens.",
-      "contact": {
-        "phone": "+960 567-8901",
-        "email": "contact@coralcove.mv"
-      },
+      "transfer": { "type": "Seaplane", "guestPrice": 220, "localPrice": 200 },
+      "contact": { "phone": "+960 567-8901", "email": "contact@coralcove.mv" },
       "rooms": [
         {
           "type": "Standard",
