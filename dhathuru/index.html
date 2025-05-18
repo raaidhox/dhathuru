@@ -144,7 +144,7 @@
       ──────────────────────────────────────────────────────────── */
       let islands = [];
     
-      fetch('../dhathuru/data/guesthouse.json')
+      fetch('data/guesthouse.json')
         .then(r => r.json())
         .then(obj => {
           islands = [...new Set(obj.hotels.map(h => h.island))].sort();
@@ -196,4 +196,5 @@
   
 </body>
 </html>
+
 
