@@ -148,6 +148,17 @@
   border-radius: .4rem;
   white-space: nowrap;
 }
+.transfer {
+  background:#fff;
+  padding:1rem;
+  border:1px solid var(--clr-border);
+  border-radius:.5rem;
+  margin-top:1rem;
+  font-weight:500;
+}
+.transfer label { cursor:pointer; }
+.transfer input { margin-right:.5rem; accent-color:var(--clr-accent); }
+
 
   </style>
 </head>
@@ -173,156 +184,208 @@
     <div class="rooms" id="roomsContainer"></div>
   </div>
 
+  <!-- ─── Transfer option ─── -->
+<div id="transferBox" class="transfer" style="display:none;">
+  <label>
+    <input type="checkbox" id="transferToggle">
+    YES! Include <span id="transferLabel"></span>
+  </label>
+</div>
+
+
   <div id="total">Total: $0.00</div>
   <a id="checkBtn" href="" target="_blank">Check Availability</a>
 
   <script>
-    // Helper to compute number of nights
+    /* --------------------------------------------------
+       Simple helper: number of nights between 2 ISO dates
+    -------------------------------------------------- */
     function nights(a, b) {
-      return Math.round((new Date(b) - new Date(a)) / (1000 * 60 * 60 * 24));
+      return Math.round((new Date(b) - new Date(a)) / 8.64e7); // 86 400 000 ms
     }
-
-    // Read all URL params
-    const params      = new URLSearchParams(location.search);
-    const hotelId     = params.get('hotelId');
-    const island      = params.get('island')      || '';
-    const nationality = params.get('nationality') || 'Maldivian';
-    const adults      = params.get('adults')      || '1';
-    const kids        = params.get('kids')        || '0';
-    const checkin     = params.get('checkin')     || '';
-    const checkout    = params.get('checkout')    || '';
-    const totalGuests = Number(adults) + Number(kids);
-
-    // Summary bar elements
+    
+    /* --------------------------------------------------
+       Read query-string parameters
+    -------------------------------------------------- */
+    const qs            = new URLSearchParams(location.search);
+    const hotelId       = qs.get('hotelId');
+    const island        = qs.get('island')      || '';
+    const nationality   = qs.get('nationality') || 'Maldivian';
+    const adults        = qs.get('adults')      || '1';
+    const kids          = qs.get('kids')        || '0';
+    const checkin       = qs.get('checkin')     || '';
+    const checkout      = qs.get('checkout')    || '';
+    const totalGuests   = Number(adults) + Number(kids);
+    
+    /* --------------------------------------------------
+       Mini summary bar
+    -------------------------------------------------- */
     const summaryText = document.getElementById('summaryText');
-    const editBtn     = document.getElementById('editBtn');
-
-    // Populate summary text
     summaryText.textContent =
-      (island || 'All islands')
-      + ' — ' + adults + ' adult(s), ' + kids + ' child(ren)'
-      + (checkin ? ' — ' + checkin + ' → ' + checkout : '');
-
-    // Redirect back to results.html with same filters
-    editBtn.onclick = () => {
+      (island || 'All islands') +
+      ' — ' + adults + ' adult(s), ' + kids + ' child(ren)' +
+      (checkin ? ' — ' + checkin + ' → ' + checkout : '');
+    
+    document.getElementById('editBtn').onclick = function () {
       window.location.href = 'results.html?' + location.search;
     };
-
-    // Data holders
-    let roomCounts = {};
-    let currentHotel = null;
-
-    // Fetch JSON and render
+    
+    /* --------------------------------------------------
+       State holders
+    -------------------------------------------------- */
+    let roomCounts      = {};
+    let currentHotel    = null;
+    let includeTransfer = false;
+    
+    const transferToggle = document.getElementById('transferToggle');
+    
+    /* --------------------------------------------------
+       Fetch data and build page
+    -------------------------------------------------- */
     fetch('../dhathuru/data/guesthouse.json')
-      .then(res => res.json())
-      .then(data => {
-        // Find this hotel
-        const hotel = data.hotels.find(h => h.id === hotelId);
+      .then(function (res) { return res.json(); })
+      .then(function (data) {
+    
+        /* ---- locate hotel ---- */
+        const hotel = data.hotels.find(function (h) { return h.id === hotelId; });
+        if (!hotel) { alert('Hotel not found'); return; }
         currentHotel = hotel;
-
-        // Fill in hotel info
+    
+        /* ---- top card ---- */
         document.getElementById('hotelName').textContent = hotel.name;
         document.getElementById('hotelDesc').textContent = hotel.description;
-        document.getElementById('hotelImg').src       = hotel.images[0];
-        
-        var amenDiv = document.getElementById('amenities');
-amenDiv.innerHTML = '';                       // clear in case of reload
-if (Array.isArray(hotel.amenities) && hotel.amenities.length) {
-  hotel.amenities.forEach(function (am) {
-    var span = document.createElement('span');
-    span.textContent = am;
-    amenDiv.appendChild(span);
-  });
-}
-        // Build room selectors
+        document.getElementById('hotelImg').src          = hotel.images[0] || '';
+    
+        /* amenities pills */
+        const amenBox = document.getElementById('amenities');
+        amenBox.innerHTML = '';
+        if (Array.isArray(hotel.amenities)) {
+          hotel.amenities.forEach(function (am) {
+            const span = document.createElement('span');
+            span.textContent = am;
+            amenBox.appendChild(span);
+          });
+        }
+    
+        /* ---- transfer box (once) ---- */
+        if (hotel.transfer && hotel.transfer.type) {
+          const rate        = (nationality === 'Foreigner')
+            ? hotel.transfer.guestPrice
+            : hotel.transfer.localPrice;
+    
+          const box   = document.getElementById('transferBox');
+          const label = document.getElementById('transferLabel');
+          label.textContent =
+            hotel.transfer.type + ' transfer to ' + hotel.island +
+            ' ($' + rate + ' per person)';
+          box.style.display = 'block';
+    
+          transferToggle.checked  = false;
+          transferToggle.onchange = function () {
+            includeTransfer = transferToggle.checked;
+            updateTotal();
+          };
+        }
+    
+        /* ---- room cards ---- */
         const roomsDiv = document.getElementById('roomsContainer');
         hotel.rooms.forEach(function (rm) {
-  roomCounts[rm.type] = 0;
-
-  /* pick the correct nightly rate */
-  const rate = (nationality === 'Foreigner') ? rm.guestPrice : rm.localPrice;
-
-  /* build full card */
-  const card = document.createElement('div');
-  card.className = 'room';
-
-  card.innerHTML = `
-      <img src="${rm.image}" alt="${rm.type}">
-      <div class="room-info">
-        <h3>${rm.type}</h3>
-        <p>${rm.description || ('Sleeps ' + rm.capacity)}</p>
-        <p><strong>$${rate}</strong> / night</p>
-
-        <div class="room-controls">
-          <button data-type="${rm.type}" class="dec">−</button>
-          <span id="count-${rm.type}">0</span>
-          <button data-type="${rm.type}" class="inc">＋</button>
-        </div>
-      </div>`;
-
-  roomsDiv.appendChild(card);
-});
-
-
-        // Wire up increment/decrement
-        document.querySelectorAll('.inc').forEach(btn => {
-          btn.onclick = e => {
-            const t = e.target.dataset.type;
+          roomCounts[rm.type] = 0;
+    
+          const rate = (nationality === 'Foreigner') ? rm.guestPrice : rm.localPrice;
+    
+          const card = document.createElement('div');
+          card.className = 'room';
+          card.innerHTML =
+            '<img src="' + rm.image + '" alt="' + rm.type + '">' +
+            '<div class="room-info">' +
+              '<h3>' + rm.type + '</h3>' +
+              '<p>' + (rm.description || ('Sleeps ' + rm.capacity)) + '</p>' +
+              '<p><strong>$' + rate + '</strong> / night</p>' +
+              '<div class="room-controls">' +
+                '<button data-type="' + rm.type + '" class="dec">−</button>' +
+                '<span id="count-' + rm.type + '">0</span>' +
+                '<button data-type="' + rm.type + '" class="inc">＋</button>' +
+              '</div>' +
+            '</div>';
+          roomsDiv.appendChild(card);
+        });
+    
+        /* + / − buttons */
+        document.querySelectorAll('.inc').forEach(function (btn) {
+          btn.onclick = function () {
+            const t = btn.dataset.type;
             roomCounts[t]++;
-            document.getElementById(`count-${t}`).textContent = roomCounts[t];
+            document.getElementById('count-' + t).textContent = roomCounts[t];
             updateTotal();
           };
         });
-        document.querySelectorAll('.dec').forEach(btn => {
-          btn.onclick = e => {
-            const t = e.target.dataset.type;
+        document.querySelectorAll('.dec').forEach(function (btn) {
+          btn.onclick = function () {
+            const t = btn.dataset.type;
             if (roomCounts[t] > 0) {
               roomCounts[t]--;
-              document.getElementById(`count-${t}`).textContent = roomCounts[t];
+              document.getElementById('count-' + t).textContent = roomCounts[t];
               updateTotal();
             }
           };
         });
-
-        // Initial total
+    
+        /* initial total */
         updateTotal();
-
-        // Link to your booking form
+    
+        /* external booking form link */
         document.getElementById('checkBtn').href = 'https://forms.gle/your-google-form';
       });
-
-    // Calculate and display total cost
+    
+    /* --------------------------------------------------
+       Recalculate total anytime something changes
+    -------------------------------------------------- */
     function updateTotal() {
-  if (!currentHotel) return;
-
-  /* 1. How many beds have we actually booked? */
-  let sleepingCap = 0;
-  currentHotel.rooms.forEach(rm => {
-    sleepingCap += roomCounts[rm.type] * (rm.capacity || 0);
-  });
-
-  /* 2. Do we cover everyone? */
-  if (sleepingCap < totalGuests) {
-    document.getElementById('total').textContent =
-      `Select more rooms - current room selection sleeps ${sleepingCap} ` +
-      `but you have ${totalGuests} guest${totalGuests > 1 ? 's' : ''}.`;
-    return;                               // don’t show a price
-  }
-
-  /* 3. Enough beds ⇒ calculate cost */
-  const stayNights = nights(checkin, checkout) || 1;   // default 1 night
-  let total = 0;
-  currentHotel.rooms.forEach(rm => {
-    const cnt  = roomCounts[rm.type];
-    const rate = nationality === 'Foreigner' ? rm.guestPrice : rm.localPrice;
-    total += cnt * rate * stayNights;
-  });
-  document.getElementById('total').textContent =
-  `Total for ${stayNights} night${stayNights > 1 ? 's' : ''}: $${total.toFixed(2)}`;
-
-}
-
-  </script>
+      if (!currentHotel) return;
+    
+      /* 1) capacity check */
+      let beds = 0;
+      currentHotel.rooms.forEach(function (rm) {
+        beds += roomCounts[rm.type] * (rm.capacity || 0);
+      });
+      if (beds < totalGuests) {
+        document.getElementById('total').textContent =
+          'Select more rooms – current selection sleeps ' + beds +
+          ' but you have ' + totalGuests + ' guest' +
+          (totalGuests > 1 ? 's.' : '.');
+        return;
+      }
+    
+      /* 2) base cost */
+      const nightsStay = nights(checkin, checkout) || 1;
+      let total = 0;
+      currentHotel.rooms.forEach(function (rm) {
+        const rate = (nationality === 'Foreigner') ? rm.guestPrice : rm.localPrice;
+        total += roomCounts[rm.type] * rate * nightsStay;
+      });
+    
+      /* 3) transfer cost */
+      let transferCost = 0;
+      if (includeTransfer && currentHotel.transfer) {
+        const rate = (nationality === 'Foreigner')
+          ? currentHotel.transfer.guestPrice
+          : currentHotel.transfer.localPrice;
+        transferCost = rate * totalGuests;
+        total       += transferCost;
+      }
+    
+      /* 4) display */
+      let line = 'Total for ' + nightsStay + ' night' +
+                 (nightsStay > 1 ? 's' : '') + ': $' + total.toFixed(2);
+      if (transferCost) {
+        line += ' (includes transfer $' + transferCost.toFixed(2) + ')';
+      }
+      document.getElementById('total').textContent = line;
+    }
+    </script>
+    
 </body>
 </html>
+
 
