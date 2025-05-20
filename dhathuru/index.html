@@ -4,14 +4,12 @@
   <meta charset="UTF-8">
   <title>Guesthouse Search</title>
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr@4.6.13/dist/flatpickr.min.css">
-<script defer src="https://cdn.jsdelivr.net/npm/flatpickr@4.6.13/dist/flatpickr.min.js"></script>
+  <script defer src="https://cdn.jsdelivr.net/npm/flatpickr@4.6.13/dist/flatpickr.min.js"></script>
 
   <style>
-    
     @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600&display=swap');
     :root {
       --primary: #6C63FF;
-      --primary-light: #8A85FF;
       --bg: #F5F7FA;
       --text: #333;
       --input-bg: #fff;
@@ -23,10 +21,10 @@
       --btn-active: #6C63FF;
       --btn-text-active: #fff;
     }
-    *, *::before, *::after { box-sizing: border-box; }
+    *,*::before,*::after { box-sizing: border-box; }
     body {
-      font-family: 'Poppins', sans-serif;
-      background-color: var(--bg);
+      font-family: 'Poppins',sans-serif;
+      background: var(--bg);
       color: var(--text);
       max-width: 600px;
       margin: 2rem auto;
@@ -58,7 +56,7 @@
       flex: 1; text-align: center; padding: .75rem 1rem;
       background: var(--btn-bg); border-radius: .5rem;
       cursor: pointer; user-select: none;
-      transition: background 0.2s ease, color 0.2s ease;
+      transition: background .2s, color .2s;
     }
     .radio-group input[type="radio"]:checked + label {
       background: var(--btn-active); color: var(--btn-text-active);
@@ -69,6 +67,7 @@
       font-weight:600; cursor:pointer;
     }
     form { position: relative; }
+    #searchMsg { margin-top:.5rem; font-size:.95rem; }
   </style>
 </head>
 <body>
@@ -80,7 +79,7 @@
 
     <label>Nationality (required)</label>
     <div class="radio-group">
-      <input type="radio" id="natMaldivian" name="nationality" value="Maldivian" required>
+      <input type="radio" id="natMaldivian" name="nationality" value="Maldivian">
       <label for="natMaldivian">Maldivian</label>
       <input type="radio" id="natForeigner" name="nationality" value="Foreigner">
       <label for="natForeigner">Foreigner</label>
@@ -90,110 +89,91 @@
     <select id="adultsSelect" name="adults">
       <option>1</option><option>2</option><option>3</option><option>4</option>
     </select>
+
     <label for="kidsSelect">Kids</label>
     <select id="kidsSelect" name="kids">
       <option>0</option><option>1</option><option>2</option>
     </select>
-    <input id="checkin"  name="checkin"  type="text" placeholder="Select date…" required>
+
+    <label for="checkin">Check-in</label>
+    <input id="checkin" name="checkin" type="text" placeholder="Select date…" required>
+
+    <label for="checkout">Check-out</label>
     <input id="checkout" name="checkout" type="text" placeholder="Select date…" required>
-    
+
     <button type="submit">Search</button>
+    <div id="searchMsg"></div>
   </form>
 
   <script>
-    /* run after the document is ready */
-    document.addEventListener('DOMContentLoaded', function () {
-    
-      /* ────────────────────────────────────────────────────────────
-         0.  DATE PICKERS  — grey-out past days with Flatpickr
-      ──────────────────────────────────────────────────────────── */
-      const ONE_DAY   = 8.64e7;                        // ms in a day
-      const today     = new Date();
-      const tomorrow  = new Date(today.getFullYear(), today.getMonth(), today.getDate() + 1);
-    
-      /* util → date → 'YYYY-MM-DD' */
-      const iso = d => d.toISOString().split('T')[0];
-    
-      /* Check-in calendar */
-      const fpIn = flatpickr('#checkin', {
-        dateFormat: 'Y-m-d',
-        defaultDate: iso(tomorrow),
-        minDate: iso(tomorrow),
-        onChange: syncOutMin
-      });
-    
-      /* Check-out calendar */
-      const fpOut = flatpickr('#checkout', {
-        dateFormat: 'Y-m-d',
-        defaultDate: iso(new Date(tomorrow.getTime() + ONE_DAY)),
-        minDate:    iso(new Date(tomorrow.getTime() + ONE_DAY))
-      });
-    
-      function syncOutMin(selected){
-        const nextDay = new Date(selected[0].getTime() + ONE_DAY);
-        fpOut.set('minDate', iso(nextDay));
-    
-        /* auto-correct an invalid earlier check-out */
-        if (fpOut.selectedDates[0] < nextDay){
-          fpOut.setDate(nextDay, true);
-        }
+  document.addEventListener('DOMContentLoaded', () => {
+    // ─── Flatpickr setup ───
+    const ONE_DAY = 8.64e7,
+          today   = new Date(),
+          tomorrow= new Date(today.getFullYear(), today.getMonth(), today.getDate()+1),
+          iso     = d => d.toISOString().split('T')[0];
+
+    const fpIn = flatpickr('#checkin', {
+      dateFormat:'Y-m-d', defaultDate:iso(tomorrow), minDate:iso(tomorrow),
+      onChange: ([d]) => {
+        const minOut = new Date(d.getTime()+ONE_DAY);
+        fpOut.set('minDate', iso(minOut));
+        if (fpOut.selectedDates[0] < minOut) fpOut.setDate(minOut, true);
       }
-    
-      /* ────────────────────────────────────────────────────────────
-         1.  ISLAND LIST FETCH
-      ──────────────────────────────────────────────────────────── */
-      let islands = [];
-    
-      fetch('data/guesthouse.json')
-        .then(r => r.json())
-        .then(obj => {
-          islands = [...new Set(obj.hotels.map(h => h.island))].sort();
-        });
-    
-      /* ────────────────────────────────────────────────────────────
-         2.  AUTOCOMPLETE
-      ──────────────────────────────────────────────────────────── */
-      const form        = document.getElementById('searchForm');
-      const islandInput = document.getElementById('islandInput');
-      const suggBox     = document.getElementById('suggestions');
-    
-      islandInput.addEventListener('focus',  () => showSuggestions(''));
-      islandInput.addEventListener('input',  () => showSuggestions(islandInput.value.trim()));
-    
-      document.addEventListener('click', e => {
-        if (!form.contains(e.target)) suggBox.innerHTML = '';
+    });
+    const fpOut = flatpickr('#checkout', {
+      dateFormat:'Y-m-d',
+      defaultDate: iso(new Date(tomorrow.getTime()+ONE_DAY)),
+      minDate:     iso(new Date(tomorrow.getTime()+ONE_DAY))
+    });
+
+    // ─── Island autocomplete ───
+    let islands = [];
+    fetch('../dhathuru/data/guesthouse.json')
+      .then(r=>r.json())
+      .then(db=> islands = [...new Set(db.hotels.map(h=>h.island))].sort());
+
+    const form = document.getElementById('searchForm'),
+          islandInput = document.getElementById('islandInput'),
+          suggBox = document.getElementById('suggestions');
+
+    islandInput.addEventListener('focus', ()=>showSuggestions(''));
+    islandInput.addEventListener('input', ()=>showSuggestions(islandInput.value.trim()));
+    document.addEventListener('click', e => {
+      if (!form.contains(e.target)) suggBox.innerHTML = '';
+    });
+    function showSuggestions(q) {
+      suggBox.innerHTML = '';
+      const list = q
+        ? islands.filter(i=>i.toLowerCase().includes(q.toLowerCase()))
+        : ['All islands', ...islands];
+      list.forEach(item => {
+        const div = document.createElement('div');
+        div.textContent = item;
+        div.onclick = () => {
+          islandInput.value = item==='All islands'?'':item;
+          suggBox.innerHTML = '';
+        };
+        suggBox.appendChild(div);
       });
-    
-      function showSuggestions(q){
-        suggBox.innerHTML = '';
-        const list = q
-          ? islands.filter(i => i.toLowerCase().includes(q.toLowerCase()))
-          : ['All islands', ...islands];
-    
-        list.forEach(item => {
-          const div = document.createElement('div');
-          div.textContent = item;
-          div.onclick = () => {
-            islandInput.value = (item === 'All islands') ? '' : item;
-            suggBox.innerHTML = '';
-          };
-          suggBox.appendChild(div);
-        });
+    }
+
+    // ─── Form submit with nationality check ───
+    form.addEventListener('submit', e => {
+      e.preventDefault();
+      const msgBox = document.getElementById('searchMsg');
+      const selNat = form.querySelector('input[name="nationality"]:checked');
+      if (!selNat) {
+        msgBox.style.color = 'crimson';
+        msgBox.textContent = 'Please select a nationality.';
+        return;
       }
-    
-      /* ────────────────────────────────────────────────────────────
-         3.  SUBMIT → results.html
-      ──────────────────────────────────────────────────────────── */
-      form.addEventListener('submit', e => {
-        e.preventDefault();
-        const params = new URLSearchParams(new FormData(form));
-        window.location.href = `results.html?${params.toString()}`;
-      });
-    
-    }); /* end DOMContentLoaded */
-    </script>
-    
-  
+      msgBox.textContent = '';
+      const params = new URLSearchParams(new FormData(form));
+      window.location.href = `results.html?${params.toString()}`;
+    });
+  });
+  </script>
 </body>
 </html>
 
