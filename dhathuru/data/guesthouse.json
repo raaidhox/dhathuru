@@ -4,218 +4,78 @@
       "id": "paradise-retreat",
       "name": "Paradise Retreat",
       "island": "Maafushi",
-      "description": "Add your description here.",
-      "transfer": { "type": "Speedboat", "guestPrice": 30, "localPrice": 25 },
-      "contact": { "phone": "", "email": "" },
+      "description": "",
+      "transfer": {
+        "type": "Speedboat",
+        "guestPrice": 25,
+        "localPrice": 20
+      },
+      "transferSchedule": {
+        "airport-island":  [
+            "08:40", "09:00", "10:15", "10:25", "11:40", "12:40",
+             "14:10", "15:25", "15:40", "16:55",
+            "18:10", "19:10", "21:30", "22:10"
+          ]
+        ,
+        "island-airport":  [
+            "06:30", "07:30", "08:00", "09:30", "10:00", "11:30",
+            "12:00",  "14:30", "16:00", "16:30", "17:00",
+            "19:30", "20:00", "20:30"
+          ]
+
+        }
+      ,
+      "contact": {
+        "phone": "",
+        "email": ""
+      },
       "amenities": ["Wi-Fi", "Breakfast", "Airport transfer"],
       "rooms": [
         {
-          "type": "Deluxe",
-          "pricePerNight": 500,
-          "guestPrice": 550,
-          "localPrice": 450,
-          "capacity": 4,
-          "image": "https://encrypted-tbn3.gstatic.com/licensed-image?q=tbn:ANd9GcRvHASOPdS88sqdheA8gdJmpKoQ1TPDqzowIyBTHS0S0k3qddE-bdnHIgkRonudcbB_6JKTgRO88dWzXAgcq97JSx9hqm9FJ2U0GY0zJA"
+          "type": "Deluxe Double",
+          "count": 3,
+          "pricePerNight": 72,
+          "guestPrice": 72,
+          "localPrice": 72,
+          "capacity": 2,
+          "image": "https://q-xx.bstatic.com/xdata/images/hotel/max1024x768/599166379.jpg?k=b4ceb1e7501af3cf30f70d562c6d7dc99873aabf800adc41193140464d81284a&o=&s=1024x",
+          "images": [
+            "https://q-xx.bstatic.com/xdata/images/hotel/max1024x768/599166379.jpg?k=b4ceb1e7501af3cf30f70d562c6d7dc99873aabf800adc41193140464d81284a&o=&s=1024x",
+            "https://example.com/deluxe-2.jpg",
+            "https://example.com/deluxe-3.jpg"
+          ]
         },
         {
-          "type": "Superior",
-          "pricePerNight": 600,
-          "guestPrice": 660,
-          "localPrice": 540,
+          "type": "Superior Double",
+          "count": 5,
+          "pricePerNight": 77,
+          "guestPrice": 77,
+          "localPrice": 77,
           "capacity": 2,
-          "image": "https://encrypted-tbn0.gstatic.com/licensed-image?q=tbn:ANd9GcQf5iMZJPPdcRONre7Ghk229-XaTZ9qU20ZBhiNPsLDkoEPlmfk9MZR_GJRiaStA8HX-Rt9J3E_z9Qf-UjlLGODzbiUHVtOiOnZaLN2AA"
+          "image": "https://q-xx.bstatic.com/xdata/images/hotel/max1024x768/599165972.jpg?k=634bbae2d3fe3588f890ecfd9e82fff9300b7104813f416e92915ae85ccbcff1&o=&s=1024x",
+          "images": [
+            "https://example.com/superior-thumb.jpg",
+            "https://example.com/superior-2.jpg"
+          ]
+        },
+        {
+          "type": "Premier Superior",
+          "count": 1,
+          "pricePerNight": 82,
+          "guestPrice": 82,
+          "localPrice": 82,
+          "capacity": 2,
+          "image": "https://q-xx.bstatic.com/xdata/images/hotel/max1024x768/599163338.jpg?k=f906680e76c3d8ed21fb506049268428b0cf85268c40088bbef6475d12e963ec&o=&s=1024x",
+          "images": [
+            "https://example.com/premier-thumb.jpg"
+          ]
         }
       ],
       "images": [
-        "https://encrypted-tbn3.gstatic.com/licensed-image?q=tbn:ANd9GcRvHASOPdS88sqdheA8gdJmpKoQ1TPDqzowIyBTHS0S0k3qddE-bdnHIgkRonudcbB_6JKTgRO88dWzXAgcq97JSx9hqm9FJ2U0GY0zJA",
-        "https://encrypted-tbn0.gstatic.com/licensed-image?q=tbn:ANd9GcQf5iMZJPPdcRONre7Ghk229-XaTZ9qU20ZBhiNPsLDkoEPlmfk9MZR_GJRiaStA8HX-Rt9J3E_z9Qf-UjlLGODzbiUHVtOiOnZaLN2AA"
-      ]
-    },
-
-    {
-      "id": "raaidh-house",
-      "name": "Raaidh House",
-      "island": "Maafushi",
-      "description": "Add your description here.",
-      "transfer": { "type": "Speedboat", "guestPrice": 30, "localPrice": 25 },
-      "contact": { "phone": "", "email": "" },
-      "rooms": [
-        {
-          "type": "Indigo",
-          "pricePerNight": 200,
-          "guestPrice": 220,
-          "localPrice": 180,
-          "capacity": 3,
-          "image": "../images/2D48lcbvKw8M6GrmGPkYgqQRH.png"
-        },
-        {
-          "type": "African",
-          "pricePerNight": 5000,
-          "guestPrice": 5500,
-          "localPrice": 4500,
-          "capacity": 2,
-          "image": "../images/2D48lcbvKw8M6GrmGPkYgqQRH.png"
-        }
-      ],
-      "images": [
-        "../images/2D48lcbvKw8M6GrmGPkYgqQRH.png",
-        "../images/2D48lcbvKw8M6GrmGPkYgqQRH.png"
-      ]
-    },
-
-    {
-      "id": "ocean-view",
-      "name": "Ocean View",
-      "island": "Gulhi",
-      "description": "Stunning views of the ocean with modern amenities.",
-      "transfer": { "type": "Speedboat", "guestPrice": 35, "localPrice": 30 },
-      "contact": { "phone": "+960 123-4567", "email": "info@oceanview.mv" },
-      "rooms": [
-        {
-          "type": "Standard",
-          "pricePerNight": 400,
-          "guestPrice": 440,
-          "localPrice": 360,
-          "capacity": 2,
-          "image": "https://picsum.photos/seed/ocean1/400/300"
-        },
-        {
-          "type": "Deluxe",
-          "pricePerNight": 550,
-          "guestPrice": 605,
-          "localPrice": 495,
-          "capacity": 2,
-          "image": "https://picsum.photos/seed/ocean2/400/300"
-        }
-      ],
-      "images": [
-        "https://picsum.photos/seed/oceangallery1/800/600",
-        "https://picsum.photos/seed/oceangallery2/800/600"
-      ]
-    },
-
-    {
-      "id": "sunset-escape",
-      "name": "Sunset Escape",
-      "island": "Thulusdhoo",
-      "description": "Cozy beachside guesthouse perfect for watching sunsets.",
-      "transfer": { "type": "Speedboat", "guestPrice": 40, "localPrice": 35 },
-      "contact": { "phone": "+960 234-5678", "email": "stay@sunsetescape.mv" },
-      "rooms": [
-        {
-          "type": "Beachfront",
-          "pricePerNight": 650,
-          "guestPrice": 715,
-          "localPrice": 585,
-          "capacity": 2,
-          "image": "https://picsum.photos/seed/sunset1/400/300"
-        },
-        {
-          "type": "Garden",
-          "pricePerNight": 350,
-          "guestPrice": 385,
-          "localPrice": 315,
-          "capacity": 2,
-          "image": "https://picsum.photos/seed/sunset2/400/300"
-        }
-      ],
-      "images": [
-        "https://picsum.photos/seed/sunsetgallery1/800/600",
-        "https://picsum.photos/seed/sunsetgallery2/800/600"
-      ]
-    },
-
-    {
-      "id": "lagoon-resort",
-      "name": "Lagoon Resort",
-      "island": "Dhiffushi",
-      "description": "Relax in bungalows over a turquoise lagoon.",
-      "transfer": { "type": "Local flight + speedboat", "guestPrice": 140, "localPrice": 120 },
-      "contact": { "phone": "+960 345-6789", "email": "hello@lagoonresort.mv" },
-      "rooms": [
-        {
-          "type": "Water Bungalow",
-          "pricePerNight": 1200,
-          "guestPrice": 1320,
-          "localPrice": 1080,
-          "capacity": 2,
-          "image": "https://picsum.photos/seed/lagoon1/400/300"
-        },
-        {
-          "type": "Garden Bungalow",
-          "pricePerNight": 800,
-          "guestPrice": 880,
-          "localPrice": 720,
-          "capacity": 2,
-          "image": "https://picsum.photos/seed/lagoon2/400/300"
-        }
-      ],
-      "images": [
-        "https://picsum.photos/seed/lagoongallery1/800/600",
-        "https://picsum.photos/seed/lagoongallery2/800/600"
-      ]
-    },
-
-    {
-      "id": "reef-inn",
-      "name": "Reef Inn",
-      "island": "Himmafushi",
-      "description": "Affordable comfort just steps from the reef.",
-      "transfer": { "type": "Speedboat", "guestPrice": 45, "localPrice": 40 },
-      "contact": { "phone": "+960 456-7890", "email": "book@reefinn.mv" },
-      "rooms": [
-        {
-          "type": "Twin",
-          "pricePerNight": 300,
-          "guestPrice": 330,
-          "localPrice": 270,
-          "capacity": 2,
-          "image": "https://picsum.photos/seed/reef1/400/300"
-        },
-        {
-          "type": "Family",
-          "pricePerNight": 450,
-          "guestPrice": 495,
-          "localPrice": 405,
-          "capacity": 4,
-          "image": "https://picsum.photos/seed/reef2/400/300"
-        }
-      ],
-      "images": [
-        "https://picsum.photos/seed/reefgallery1/800/600",
-        "https://picsum.photos/seed/reefgallery2/800/600"
-      ]
-    },
-
-    {
-      "id": "coral-cove",
-      "name": "Coral Cove",
-      "island": "Ukulhas",
-      "description": "Charming guesthouse surrounded by coral gardens.",
-      "transfer": { "type": "Seaplane", "guestPrice": 220, "localPrice": 200 },
-      "contact": { "phone": "+960 567-8901", "email": "contact@coralcove.mv" },
-      "rooms": [
-        {
-          "type": "Standard",
-          "pricePerNight": 380,
-          "guestPrice": 418,
-          "localPrice": 342,
-          "capacity": 2,
-          "image": "https://picsum.photos/seed/coral1/400/300"
-        },
-        {
-          "type": "Premium",
-          "pricePerNight": 600,
-          "guestPrice": 660,
-          "localPrice": 540,
-          "capacity": 2,
-          "image": "https://picsum.photos/seed/coral2/400/300"
-        }
-      ],
-      "images": [
-        "https://picsum.photos/seed/coralgallery1/800/600",
-        "https://picsum.photos/seed/coralgallery2/800/600"
+        "https://dynamic-media-cdn.tripadvisor.com/media/photo-o/13/35/cf/ff/maafushi-village.jpg?w=1400&h=-1&s=1",
+        "https://example.com/superior-thumb.jpg"
       ]
     }
   ]
 }
+
