@@ -59,6 +59,7 @@
   }
   .hotel-info img {
     width: 100%;
+    min-height: 50%;
     border-radius: .5rem;
     box-shadow: 0 4px 8px var(--clr-shadow);
     margin-bottom: 1rem;
@@ -172,6 +173,25 @@
     font-family: inherit;
   }
   </style>
+  <style>
+    /* lightbox modal */
+    #imgModal {
+      display: none;
+      position: fixed;
+      top: 0; left: 0; right:0; bottom:0;
+      background: rgba(0,0,0,0.8);
+      align-items: center;
+      justify-content: center;
+      z-index: 1000;
+    }
+    #imgModal img {
+      max-width: 90%;
+      max-height: 90%;
+      border-radius: .5rem;
+      box-shadow: 0 4px 12px rgba(0,0,0,.5);
+    }
+  </style>
+  
 </head>
 <body>
 
@@ -221,6 +241,10 @@
   <div id="total">Total: $0.00</div>
   <button id="bookBtn">Book now</button>
   <p id="msg"></p>
+  <!-- place this at the end of your <body> -->
+<div id="imgModal" onclick="closeModal()">
+  <img id="modalImg" src="" alt="Enlarged image">
+</div>
 
   <script>
   document.addEventListener('DOMContentLoaded', () => {
@@ -258,7 +282,7 @@
       });
     }
 
-    fetch('..dhathuru/data/guesthouse.json').then(r=>r.json()).then(db=>{
+    fetch('../dhathuru/data/guesthouse.json').then(r=>r.json()).then(db=>{
       currentHotel = db.hotels.find(h=>h.id===hotelId);
       if(!currentHotel){ alert('Hotel not found'); return; }
 
@@ -320,7 +344,12 @@
         const img  = rm.image || rm.images?.[0] || '';
         wrap.insertAdjacentHTML('beforeend',`
           <div class="room">
-            <img src="${img}" alt="${rm.type}">
+            <img 
+  src="${img}" 
+  alt="${rm.type}" 
+  style="cursor: zoom-in;"
+  onclick="openModal('${img}')">
+
             <div class="room-info">
               <h3>${rm.type}</h3>
               <p>${rm.description||('Sleeps '+rm.capacity)}</p>
@@ -372,6 +401,18 @@
         $('total').textContent = `Total for ${stay} night${stay>1?'s':''}: $${total.toFixed(2)}`;
       }
     }
+// open lightbox
+window.openModal = function(src) {
+  const modal = document.getElementById('imgModal');
+  const modalImg = document.getElementById('modalImg');
+  modalImg.src = src;
+  modal.style.display = 'flex';
+}
+
+// close lightbox when clicking anywhere
+window.closeModal = function() {
+  document.getElementById('imgModal').style.display = 'none';
+}
 
     /* submit */
     $('bookBtn').addEventListener('click', async ()=>{
